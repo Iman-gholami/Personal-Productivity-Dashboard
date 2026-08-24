@@ -1,0 +1,5 @@
+@tailwind base; @tailwind components; @tailwind utilities;
+:root{color-scheme:dark} *{box-sizing:border-box} body{margin:0;background:#07080c;color:#f5f4f7}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;background:radial-gradient(circle at 60% -10%,rgba(112,82,255,.17),transparent 34%),radial-gradient(circle at 90% 40%,rgba(22,198,181,.06),transparent 25%)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-thumb{background:#292a32;border-radius:9px}
+@layer components{.glass{@apply border border-white/[.07] bg-white/[.035] backdrop-blur-xl shadow-glow}.card{@apply glass rounded-2xl}.muted{@apply text-[#8d8c98]}.label{@apply text-[11px] font-semibold uppercase tracking-[.16em] text-[#787783]}.pill{@apply inline-flex items-center gap-1.5 rounded-full border border-white/[.08] bg-white/[.04] px-2.5 py-1 text-xs}.input{@apply w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm outline-none transition focus:border-violet-500/60}}
