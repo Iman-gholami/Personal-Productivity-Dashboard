@@ -39,7 +39,7 @@ export function ActivityChart({
         cursor={{stroke:'#ffffff10',strokeWidth:1}}
         contentStyle={{background:'rgba(13,15,22,.96)',border:'1px solid #ffffff12',borderRadius:14,fontSize:11,boxShadow:'0 18px 50px rgba(0,0,0,.35)'}}
         labelStyle={{color:'#d5d7df',marginBottom:6}}
-        formatter={(value:number,name:string)=>[
+        formatter={(value,name)=>[
           name==='studyHours'?Number(value).toFixed(1)+' h':value,
           name==='studyHours'?'Study hours':'Completed tasks',
         ]}
