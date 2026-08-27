@@ -318,6 +318,10 @@ export function registerCounselingRoutes(app:Express){
       const weekStart=toSaturday(body.weekStart);
       const existing=await WeeklyPlan.findOne({studentId:body.studentId,weekStart,status:{$ne:'archived'}});
       if(existing) return res.status(409).json({error:'A plan already exists for this week'});
+      const source=body.copyFromPlanId
+        ? await WeeklyPlan.findOne({_id:body.copyFromPlanId,studentId:body.studentId})
+        : null;
+      if(body.copyFromPlanId&&!source) return res.status(404).json({error:'Source plan not found'});
       const plan=await WeeklyPlan.create({
         studentId:body.studentId,
         counselorId,
@@ -327,9 +331,7 @@ export function registerCounselingRoutes(app:Express){
         version:1,
         copiedFromPlanId:body.copyFromPlanId||null,
       });
-      if(body.copyFromPlanId){
-        const source=await WeeklyPlan.findOne({_id:body.copyFromPlanId,studentId:body.studentId});
-        if(!source) return res.status(404).json({error:'Source plan not found'});
+      if(source){
         const sourceTasks=await StudyTask.find({planId:source._id,archived:false}).lean();
         if(sourceTasks.length){
           await StudyTask.insertMany(sourceTasks.map(task=>({
@@ -354,7 +356,7 @@ export function registerCounselingRoutes(app:Express){
           })));
         }
       }
-      await materializeRecurringRules(body.studentId,counselorId,plan);
+      if(!source) await materializeRecurringRules(body.studentId,counselorId,plan);
       await Promise.all(Array.from({length:7},(_,dayIndex)=>recomputeDailyMetric(body.studentId,addDays(weekStart,dayIndex))));
       await logAudit(req.userId!,'plan.create','WeeklyPlan',plan._id,null,plan.toJSON());
       res.status(201).json(plan);
@@ -371,6 +373,7 @@ export function registerCounselingRoutes(app:Express){
       const counselorId=await resolveCounselorForStudent(req,res,String(plan.studentId),role);
       if(!counselorId) return;
       const before=plan.toJSON();
+      if(plan.status==='archived'&&body.status!=='archived') return res.status(400).json({error:'Archived plans cannot be reopened'});
       plan.status=body.status;
       if(body.status==='published') plan.publishedAt=new Date();
       if(before.status==='published'&&body.status!=='archived') plan.version=Number(plan.version||1)+1;
@@ -503,6 +506,10 @@ export function registerCounselingRoutes(app:Express){
       const task=await StudyTask.findById(req.params.id);
       if(!task||task.archived) return res.status(404).json({error:'Task not found'});
       if(role==='student'&&String(task.studentId)!==req.userId) return res.status(403).json({error:'Forbidden'});
+      if(role==='student'){
+        const plan=await WeeklyPlan.findById(task.planId).select('status');
+        if(!plan||plan.status!=='published') return res.status(403).json({error:'Plan is not published'});
+      }
       const submission=await TaskSubmission.findOneAndUpdate(
         {taskId:task._id},
         {$set:{...body,studentId:task.studentId,submittedAt:new Date()}},
@@ -529,6 +536,10 @@ export function registerCounselingRoutes(app:Express){
       const body=feedbackInput.parse(req.body);
       const counselorId=await resolveCounselorForStudent(req,res,body.studentId,role);
       if(!counselorId) return;
+      if(body.targetType==='task'){
+        const target=await StudyTask.findOne({_id:body.targetId,studentId:body.studentId,archived:false}).select('_id');
+        if(!target) return res.status(400).json({error:'Feedback task does not belong to this student'});
+      }
       const feedback=await CounselingFeedback.create({
         counselorId,
         studentId:body.studentId,
