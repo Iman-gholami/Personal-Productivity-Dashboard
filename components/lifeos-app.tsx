@@ -23,11 +23,14 @@ import {ThemeToggle} from './theme-toggle';
 
 const TOKEN_KEY='lifeos_token';
 const USER_KEY='lifeos_username';
+type AccountMode='personal'|'counselor'|'student'|'admin';
 
 export function LifeOSApp(){
   const [token,setToken]=useState<string|null>(null);
   const [username,setUsername]=useState('');
   const [ready,setReady]=useState(false);
+  const [accountMode,setAccountMode]=useState<AccountMode|null>(null);
+  const [resolvingRole,setResolvingRole]=useState(false);
   const [activeView,setActiveView]=useState<WorkspaceView>('overview');
   const [tasks,setTasks]=useState<ApiTask[]>([]);
   const [projects,setProjects]=useState<ApiProject[]>([]);
@@ -48,6 +51,7 @@ export function LifeOSApp(){
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     setToken(null);
+    setAccountMode(null);
     setTasks([]);
     setProjects([]);
     setLearning([]);
@@ -85,17 +89,48 @@ export function LifeOSApp(){
     }
   },[logout]);
 
-  useEffect(()=>{if(token)void load(token,'week')},[token,load]);
+  const resolveAccount=useCallback(async(currentToken:string)=>{
+    setResolvingRole(true);
+    setError(null);
+    try{
+      const me=await counselingApi.me(currentToken);
+      const roles=me.roles||[];
+      const mode:AccountMode=roles.includes('admin')
+        ?'admin'
+        :roles.includes('counselor')
+          ?'counselor'
+          :roles.includes('student')
+            ?'student'
+            :'personal';
+      setAccountMode(mode);
+      if(mode==='personal') await load(currentToken,'week');
+    }catch(err){
+      if(err instanceof ApiError&&err.status===401){
+        logout();
+        return;
+      }
+      setError(err instanceof Error?err.message:'Unable to resolve account role');
+      setAccountMode('personal');
+      await load(currentToken,'week');
+    }finally{
+      setResolvingRole(false);
+    }
+  },[load,logout]);
+
+  useEffect(()=>{if(token)void resolveAccount(token)},[token,resolveAccount]);
 
   function saveSession(nextToken:string,nextUsername:string){
     localStorage.setItem(TOKEN_KEY,nextToken);
     localStorage.setItem(USER_KEY,nextUsername);
     setUsername(nextUsername);
+    setAccountMode(null);
     setToken(nextToken);
   }
 
   if(!ready) return null;
   if(!token) return <AuthScreen onAuthenticated={saveSession}/>;
+  if(resolvingRole||!accountMode) return <RoleLoadingScreen/>;
+  if(accountMode!=='personal') return <CounselingWorkspace token={token} username={username||'User'} onLogout={logout}/>;
 
   async function createTask(input:{
     title:string;
@@ -231,8 +266,6 @@ export function LifeOSApp(){
           onAdvanceTask={advanceTask}
           onLogout={logout}
         />
-      : activeView==='counseling'
-      ? <CounselingWorkspace token={token} username={username||'User'}/>
       : <WorkspaceViews
           view={activeView}
           username={username||'User'}
@@ -255,6 +288,15 @@ export function LifeOSApp(){
         />
     }
   </>;
+}
+
+function RoleLoadingScreen(){
+  return <main className="grid min-h-screen place-items-center px-5">
+    <div className="card-static flex items-center gap-3 px-5 py-4">
+      <span className="status-dot"/>
+      <p className="text-sm muted">در حال آماده‌سازی پنل مناسب حساب...</p>
+    </div>
+  </main>;
 }
 
 function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:string)=>void}){
