@@ -231,6 +231,15 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
     finally{setBusy(false)}
   }
 
+  async function regenerateActivation(student:CounselingStudentProfile){
+    setBusy(true);setError(null);
+    try{
+      const result=await counselingApi.regenerateActivationCode(token,student.userId);
+      setActivation({username:result.username,code:result.activationCode});
+    }catch(err){setError(err instanceof Error?err.message:'ساخت کد فعال‌سازی جدید ناموفق بود')}
+    finally{setBusy(false)}
+  }
+
   async function removeStudent(student:CounselingStudentProfile){
     const ok=confirm(`دانش‌آموز «${student.displayName}» با نام کاربری ${student.username} از لیست فعال حذف شود؟ سوابق برنامه و گزارش‌ها نگه داشته می‌شوند.`);
     if(!ok)return;
@@ -373,6 +382,17 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
           <div><h2 className="text-base font-semibold">دانش‌آموزها</h2><p className="mt-1 text-xs muted">اول دانش‌آموز موردنظر را انتخاب کن.</p></div>
           <button type="button" onClick={()=>setShowStudentForm(value=>!value)} className="btn-secondary"><UserPlus size={15}/>{showStudentForm?'بستن فرم':'دانش‌آموز جدید'}</button>
         </div>
+        {activation&&<div className="xl:col-span-2 rounded-[18px] border border-emerald-400/25 bg-emerald-400/[.07] p-4 shadow-[0_14px_40px_rgba(16,185,129,.08)]">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-emerald-200">کد فعال‌سازی آماده است</p>
+              <p className="mt-1 text-xs muted">نام کاربری دانش‌آموز: <strong className="text-white">{activation.username}</strong></p>
+            </div>
+            <button type="button" onClick={()=>navigator.clipboard?.writeText(activation.code)} className="btn-secondary"><Copy size={14}/>کپی کد</button>
+          </div>
+          <code className="mt-3 block break-all rounded-xl border border-emerald-400/10 bg-black/20 p-3 text-left text-[12px] text-cyan-200">{activation.code}</code>
+          <p className="mt-2 text-[11px] muted">دانش‌آموز در صفحه ورود، تب «دانش‌آموز» را انتخاب کند و همین نام کاربری + کد را وارد کند.</p>
+        </div>}
         {showStudentForm&&<form onSubmit={createStudent} className="card p-5 md:p-6">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div><p className="section-kicker">دانش‌آموزان</p><h2 className="panel-heading">ایجاد دانش‌آموز</h2><p className="panel-subtitle">حساب دانش‌آموز با کد فعال‌سازی یک‌بارمصرف ساخته می‌شود.</p></div>
@@ -385,13 +405,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             <select name="grade" className="input" defaultValue="12">{meta.grades.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
           </div>
           <button disabled={busy} className="btn-primary mt-3 w-full">ساخت دانش‌آموز</button>
-          {activation&&<div className="mt-4 rounded-[15px] border border-emerald-400/15 bg-emerald-400/[.06] p-4 text-xs leading-6">
-            <p className="font-medium text-emerald-200">اطلاعات فعال‌سازی دانش‌آموز</p>
-            <p className="mt-2">نام کاربری برای ورود: <strong className="text-white">{activation.username}</strong></p>
-            <p className="mt-2 text-[10px] muted">کد فعال‌سازی:</p>
-            <code className="mt-1 block break-all rounded-lg bg-black/25 p-2 text-left text-[11px] text-cyan-200">{activation.code}</code>
-            <p className="mt-2 muted">در صفحه ورود، تب Student را بزند و دقیقاً همین نام کاربری + همین کد را وارد کند.</p>
-          </div>}
+
         </form>}
 
         <div className={`card p-5 md:p-6 ${showStudentForm?'':'xl:col-span-2'}`}>
@@ -402,8 +416,10 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
           {students.length?<div className="grid gap-2 sm:grid-cols-2">{students.map(student=><div key={student.userId} className={`relative rounded-[15px] border p-4 transition ${selectedId===student.userId?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] bg-white/[.02] hover:bg-white/[.04]'}`}>
             <button type="button" onClick={()=>setSelectedId(student.userId)} className="w-full pr-10 text-right">
               <div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className={`pill text-[9px] ${student.status==='active'?'text-emerald-300':'text-amber-300'}`}>{studentStatusLabel(student.status)}</span></div>
-              <p className="mt-2 text-[11px] muted"><span className="text-[#b0b3bd]">Username:</span> {student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p>
+              <p className="mt-2 text-[11px] muted"><span className="text-[#b0b3bd]">نام کاربری:</span> {student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p>
+              {student.status==='pending'&&<span className="mt-3 inline-flex rounded-lg border border-amber-400/15 bg-amber-400/[.06] px-2.5 py-1 text-[10px] text-amber-200">هنوز فعال نشده</span>}
             </button>
+            {student.status==='pending'&&<button type="button" onClick={()=>void regenerateActivation(student)} disabled={busy} className="absolute bottom-3 left-3 rounded-lg border border-emerald-400/15 bg-emerald-400/[.05] px-2 py-1 text-[10px] text-emerald-200 hover:bg-emerald-400/[.09]">کد جدید</button>}
             <button type="button" onClick={()=>void removeStudent(student)} disabled={busy} className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 transition hover:bg-rose-500/[.08] hover:text-rose-200" title="حذف دانش‌آموز"><Trash2 size={14}/></button>
           </div>)}</div>:<EmptyState text="هنوز دانش‌آموزی ایجاد نشده است."/>}
         </div>
