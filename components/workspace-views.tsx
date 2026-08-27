@@ -68,7 +68,8 @@ function DailyReviewView({reviews,error,onCreateReview}:{reviews:ApiReview[];err
   const [saving,setSaving]=useState(false);
   async function submit(e:FormEvent<HTMLFormElement>){
     e.preventDefault();
-    const form=new FormData(e.currentTarget);
+    const formElement=e.currentTarget;
+    const form=new FormData(formElement);
     setSaving(true);
     try{
       await onCreateReview({
@@ -76,7 +77,7 @@ function DailyReviewView({reviews,error,onCreateReview}:{reviews:ApiReview[];err
         blockers:String(form.get('blockers')||'').trim()||undefined,
         tomorrowFocus:String(form.get('tomorrowFocus')||'').trim()||undefined,
       });
-      e.currentTarget.reset();
+      formElement.reset();
     } finally {setSaving(false)}
   }
 
@@ -84,7 +85,7 @@ function DailyReviewView({reviews,error,onCreateReview}:{reviews:ApiReview[];err
     {error&&<ErrorBanner message={error}/>}
     <section className="grid gap-4 xl:grid-cols-[1fr_1.2fr]">
       <form onSubmit={submit} className="card p-5"><h2 className="font-medium">New review</h2><div className="mt-4 space-y-3"><textarea name="learnedToday" className="input min-h-28 resize-y" placeholder="What did you learn today?"/><textarea name="blockers" className="input min-h-24 resize-y" placeholder="Any blockers?"/><textarea name="tomorrowFocus" className="input min-h-24 resize-y" placeholder="What is tomorrow's focus?"/><button disabled={saving} className="w-full rounded-xl bg-violet-500 px-4 py-3 text-sm font-medium disabled:opacity-50">{saving?'Saving...':'Save daily review'}</button></div></form>
-      <div className="card overflow-hidden"><div className="border-b border-white/[.06] p-5"><h2 className="font-medium">Review history</h2><p className="mt-1 text-xs muted">{reviews.length} entries</p></div><div>{reviews.length?reviews.map(review=><article key={review._id} className="border-b border-white/[.045] p-5 last:border-0"><div className="mb-3 flex items-center gap-2 text-xs muted"><Clock3 size={13}/>{new Date(review.date||review.createdAt).toLocaleDateString()}</div>{review.learnedToday&&<ReviewField label="Learned" value={review.learnedToday}/>} {review.blockers&&<ReviewField label="Blockers" value={review.blockers}/>} {review.tomorrowFocus&&<ReviewField label="Tomorrow" value={review.tomorrowFocus}/>}</article>):<div className="p-5"><Empty text="No daily reviews yet."/></div>}</div></div>
+      <div className="card overflow-hidden"><div className="border-b border-white/[.06] p-5"><h2 className="font-medium">Review history</h2><p className="mt-1 text-xs muted">{reviews.length} entries</p></div><div>{reviews.length?reviews.map(review=><article key={review._id} className="border-b border-white/[.045] p-5 last:border-0"><div className="mb-3 flex items-center gap-2 text-xs muted"><Clock3 size={13}/>{String(review.date||review.createdAt).slice(0,10)}</div>{review.learnedToday&&<ReviewField label="Learned" value={review.learnedToday}/>} {review.blockers&&<ReviewField label="Blockers" value={review.blockers}/>} {review.tomorrowFocus&&<ReviewField label="Tomorrow" value={review.tomorrowFocus}/>}</article>):<div className="p-5"><Empty text="No daily reviews yet."/></div>}</div></div>
     </section>
   </Shell>
 }
