@@ -1,16 +1,16 @@
 'use client';
-import {Activity,BookOpen,Briefcase,CalendarDays,Command,GraduationCap,LayoutDashboard,Menu,Settings,Sparkles,X} from 'lucide-react';
+import {Activity,BookOpen,Briefcase,CalendarDays,Command,GraduationCap,LayoutDashboard,Menu,تنظیمات,Sparkles,X} from 'lucide-react';
 import {useState} from 'react';
 import {ThemeToggle} from './theme-toggle';
 
-export type WorkspaceView='overview'|'work'|'learning'|'review'|'counseling'|'settings';
+export type فضای کاریView='overview'|'work'|'learning'|'review'|'counseling'|'settings';
 
 const links=[
-  {id:'overview' as const,label:'Overview',icon:LayoutDashboard},
-  {id:'work' as const,label:'Work',icon:Briefcase},
-  {id:'learning' as const,label:'Learning',icon:BookOpen},
-  {id:'review' as const,label:'Daily review',icon:CalendarDays},
-  {id:'counseling' as const,label:'Counseling',icon:GraduationCap},
+  {id:'overview' as const,label:'خانه',icon:LayoutDashboard},
+  {id:'work' as const,label:'کارها',icon:Briefcase},
+  {id:'learning' as const,label:'یادگیری',icon:BookOpen},
+  {id:'review' as const,label:'مرور روزانه',icon:CalendarDays},
+  {id:'counseling' as const,label:'مشاوره تحصیلی',icon:GraduationCap},
 ];
 
 export function Sidebar({
@@ -50,7 +50,7 @@ export function Sidebar({
         </div>
         <div className="min-w-0">
           <div className="font-semibold tracking-[-.025em]">LifeOS</div>
-          <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-[.22em] text-violet-300/80">Personal command</div>
+          <div className="mt-0.5 text-[9px] font-semibold uppercase tracking-[.22em] text-violet-300/80">فرماندهی شخصی</div>
         </div>
         <button className="ml-auto text-[#737785] md:hidden" onClick={()=>setOpen(false)} aria-label="Close navigation"><X size={18}/></button>
       </div>
@@ -79,8 +79,8 @@ export function Sidebar({
           <div className="icon-shell h-8 w-8 rounded-[10px]"><Sparkles size={14} className="text-violet-300"/></div>
           <div className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[.16em] text-emerald-300/80"><span className="status-dot"/>Live</div>
         </div>
-        <p className="text-xs font-medium">Workspace synced</p>
-        <p className="mt-1.5 text-[11px] leading-5 text-[#7e8290]">Tasks, reports and learning data are connected to your API.</p>
+        <p className="text-xs font-medium">اتصال برقرار است</p>
+        <p className="mt-1.5 text-[11px] leading-5 text-[#7e8290]">کارها، گزارش‌ها و اطلاعات یادگیری به سرور متصل هستند.</p>
       </div>
 
       <div className="relative mt-auto space-y-1.5 pt-6">
@@ -101,7 +101,7 @@ export function Sidebar({
           </div>
           <div className="min-w-0">
             <p className="truncate text-xs font-medium">{username}</p>
-            <p className="mt-0.5 text-[10px] text-[#747886]">Personal workspace</p>
+            <p className="mt-0.5 text-[10px] text-[#747886]">فضای شخصی</p>
           </div>
           <Activity size={14} className="ml-auto text-cyan-300/80"/>
         </div>
