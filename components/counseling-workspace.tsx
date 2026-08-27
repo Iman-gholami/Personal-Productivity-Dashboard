@@ -94,6 +94,61 @@ export function CounselingWorkspace({token,username}:{token:string;username:stri
   </CounselingShell>;
 }
 
+function scrollToPanel(id:string){
+  document.getElementById(id)?.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function CounselingQuickNav({items}:{items:{id:string;label:string}[]}){
+  return <div className="counseling-quicknav" dir="rtl">
+    {items.map(item=><button key={item.id} type="button" onClick={()=>scrollToPanel(item.id)}>{item.label}</button>)}
+  </div>;
+}
+
+function CounselorStartGuide({hasStudent,hasPlan,published}:{hasStudent:boolean;hasPlan:boolean;published:boolean}){
+  const next=!hasStudent
+    ?'اول یک دانش‌آموز بساز یا از فهرست انتخاب کن.'
+    :!hasPlan
+      ?'دانش‌آموز انتخاب شده؛ حالا برنامه این هفته را بساز.'
+      :!published
+        ?'چند تسک به برنامه اضافه کن و در پایان برنامه را منتشر کن.'
+        :'برنامه منتشر شده؛ از اینجا به بعد گزارش دانش‌آموز و بازخورد را بررسی کن.';
+  const steps=[
+    ['۱','دانش‌آموز','دانش‌آموز را بساز یا انتخاب کن.'],
+    ['۲','برنامه هفته','برای شنبه تا جمعه برنامه بساز یا هفته قبل را کپی کن.'],
+    ['۳','تسک‌ها','برای هر روز درس، فصل، زمان و تعداد تست را مشخص کن.'],
+    ['۴','گزارش و بازخورد','بعد از ثبت عملکرد دانش‌آموز، گزارش را ببین و بازخورد بده.'],
+  ];
+  return <section className="counseling-guide card-static mb-4 p-5 md:p-6" dir="rtl">
+    <p className="text-[11px] font-semibold text-violet-300">راهنمای کار</p>
+    <h2 className="mt-1 text-lg font-semibold">از اینجا شروع کن</h2>
+    <p className="mt-2 rounded-xl border border-violet-400/10 bg-violet-500/[.05] px-3 py-2 text-sm leading-7">{next}</p>
+    <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+      {steps.map(([number,title,description])=><div key={number} className="counseling-guide-step">
+        <span className="counseling-guide-number">{number}</span>
+        <div><p className="text-sm font-medium">{title}</p><p className="mt-1 text-[11px] leading-6 muted">{description}</p></div>
+      </div>)}
+    </div>
+  </section>;
+}
+
+function StudentStartGuide({hasPlan,todayTasks}:{hasPlan:boolean;todayTasks:number}){
+  const next=!hasPlan
+    ?'هنوز برنامه‌ای از طرف مشاور منتشر نشده است.'
+    :todayTasks
+      ?`امروز ${todayTasks} تسک داری. اول آن‌ها را انجام بده و نتیجه واقعی را داخل هر تسک ثبت کن.`
+      :'برای امروز تسکی ثبت نشده؛ می‌توانی برنامه بقیه هفته یا گزارش‌ها را ببینی.';
+  return <section className="counseling-guide card-static mb-4 p-5 md:p-6" dir="rtl">
+    <p className="text-[11px] font-semibold text-violet-300">راهنمای امروز</p>
+    <h2 className="mt-1 text-lg font-semibold">الان باید چه کار کنم؟</h2>
+    <p className="mt-2 text-sm leading-7 muted">{next}</p>
+    <div className="mt-4 grid gap-2 sm:grid-cols-3">
+      <div className="counseling-guide-step"><span className="counseling-guide-number">۱</span><div><p className="text-sm font-medium">برنامه را ببین</p><p className="mt-1 text-[11px] leading-6 muted">تسک‌های امروز و هدف هر درس را بررسی کن.</p></div></div>
+      <div className="counseling-guide-step"><span className="counseling-guide-number">۲</span><div><p className="text-sm font-medium">عملکرد واقعی را ثبت کن</p><p className="mt-1 text-[11px] leading-6 muted">زمان، تست و نتیجه واقعی را بعد از انجام کار وارد کن.</p></div></div>
+      <div className="counseling-guide-step"><span className="counseling-guide-number">۳</span><div><p className="text-sm font-medium">گزارش و بازخورد را ببین</p><p className="mt-1 text-[11px] leading-6 muted">روند پیشرفت و پیام‌های مشاور را بررسی کن.</p></div></div>
+    </div>
+  </section>;
+}
+
 function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:CounselingMeta}){
   const [students,setStudents]=useState<CounselingStudentProfile[]>([]);
   const [selectedId,setSelectedId]=useState('');
