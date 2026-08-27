@@ -249,6 +249,11 @@ export const counselingApi={
   },
   createExam:(token:string,input:any)=>request<any>('/exams',{method:'POST',body:JSON.stringify(input)},token),
   listCounselors:(token:string)=>request<any[]>('/admin/counselors',{},token),
+  listCounselorReviews:(token:string,counselorId?:string)=>{
+    const params=new URLSearchParams();
+    if(counselorId) params.set('counselorId',counselorId);
+    return request<any[]>('/counselor-reviews?'+params.toString(),{},token);
+  },
   createCounselorReview:(token:string,input:{counselorId:string;text:string})=>
     request<any>('/admin/counselor-reviews',{method:'POST',body:JSON.stringify(input)},token),
 };
