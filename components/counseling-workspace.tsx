@@ -161,6 +161,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState<string|null>(null);
   const [activation,setActivation]=useState<{username:string;code:string}|null>(null);
+  const [showStudentForm,setShowStudentForm]=useState(false);
   const [editingTask,setEditingTask]=useState<StudyTask|null>(null);
   const [reportPeriod,setReportPeriod]=useState<CounselingReportPeriod>('week');
   const [feedbackTarget,setFeedbackTarget]=useState<'task'|'day'|'week'>('week');
@@ -221,6 +222,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
         grade:String(data.get('grade')||'12') as StudentGrade,
       });
       setActivation({username:created.username||'',code:created.activationCode});
+      setShowStudentForm(false);
       form.reset();
       await loadStudents();
       setSelectedId(created.userId);
@@ -366,7 +368,11 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       ]}/>
       <CounselorStartGuide hasStudent={Boolean(selectedStudent)} hasPlan={Boolean(selectedPlan)} published={selectedPlan?.status==='published'}/>
       <section id="counseling-students" className="grid scroll-mt-24 gap-4 xl:grid-cols-[1fr_1.5fr]">
-        <form onSubmit={createStudent} className="card p-5 md:p-6">
+        <div className="flex items-center justify-between xl:col-span-2">
+          <div><h2 className="text-base font-semibold">دانش‌آموزها</h2><p className="mt-1 text-xs muted">اول دانش‌آموز موردنظر را انتخاب کن.</p></div>
+          <button type="button" onClick={()=>setShowStudentForm(value=>!value)} className="btn-secondary"><UserPlus size={15}/>{showStudentForm?'بستن فرم':'دانش‌آموز جدید'}</button>
+        </div>
+        {showStudentForm&&<form onSubmit={createStudent} className="card p-5 md:p-6">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div><p className="section-kicker">دانش‌آموزان</p><h2 className="panel-heading">ایجاد دانش‌آموز</h2><p className="panel-subtitle">حساب دانش‌آموز با کد فعال‌سازی یک‌بارمصرف ساخته می‌شود.</p></div>
             <span className="icon-shell text-cyan-300"><UserPlus size={17}/></span>
@@ -385,9 +391,9 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             <code className="mt-1 block break-all rounded-lg bg-black/25 p-2 text-left text-[11px] text-cyan-200">{activation.code}</code>
             <p className="mt-2 muted">در صفحه ورود، تب Student را بزند و دقیقاً همین نام کاربری + همین کد را وارد کند.</p>
           </div>}
-        </form>
+        </form>}
 
-        <div className="card p-5 md:p-6">
+        <div className={`card p-5 md:p-6 ${showStudentForm?'':'xl:col-span-2'}`}>
           <div className="mb-5 flex items-start justify-between gap-3">
             <div><p className="section-kicker">فهرست دانش‌آموزان</p><h2 className="panel-heading">دانش‌آموزان من</h2><p className="panel-subtitle">{students.length} دانش‌آموز فعال یا در انتظار فعال‌سازی</p></div>
             <span className="icon-shell text-violet-300"><Users size={17}/></span>
