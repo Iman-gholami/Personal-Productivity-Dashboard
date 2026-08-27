@@ -30,6 +30,7 @@ import {
   CounselingMe,
   CounselingMeta,
   CounselingReport,
+  CounselingReportPeriod,
   CounselingStudentProfile,
   StudyActivityType,
   StudySubmissionStatus,
@@ -106,6 +107,9 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   const [error,setError]=useState<string|null>(null);
   const [activation,setActivation]=useState<{username:string;code:string}|null>(null);
   const [editingTask,setEditingTask]=useState<StudyTask|null>(null);
+  const [reportPeriod,setReportPeriod]=useState<CounselingReportPeriod>('week');
+  const [feedbackTarget,setFeedbackTarget]=useState<'task'|'day'|'week'>('week');
+  const [adminReviews,setAdminReviews]=useState<any[]>([]);
 
   const selectedStudent=students.find(item=>item.userId===selectedId)||null;
   const selectedPlan=plans.find(item=>item._id===selectedPlanId)||null;
@@ -124,7 +128,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
     try{
       const [nextPlans,nextReport,nextFeedback]=await Promise.all([
         counselingApi.listPlans(token,studentId),
-        counselingApi.getReport(token,{studentId,period:'week',anchor:weekStart}),
+        counselingApi.getReport(token,{studentId,period:reportPeriod,anchor:weekStart}),
         counselingApi.listFeedback(token,studentId),
       ]);
       setPlans(nextPlans);
@@ -134,9 +138,9 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       setSelectedPlanId(currentPlan?._id||'');
       setTasks(currentPlan?await counselingApi.listPlanTasks(token,currentPlan._id):[]);
     }catch(err){setError(err instanceof Error?err.message:'خطا در بارگذاری برنامه دانش‌آموز')}
-  },[token,weekStart]);
+  },[token,weekStart,reportPeriod]);
 
-  useEffect(()=>{void loadStudents()},[loadStudents]);
+  useEffect(()=>{void loadStudents();void counselingApi.listCounselorReviews(token).then(setAdminReviews).catch(()=>{})},[loadStudents,token]);
   useEffect(()=>{void loadStudentWorkspace(selectedId)},[selectedId,weekStart,loadStudentWorkspace]);
 
   async function reloadCurrent(){
@@ -260,7 +264,15 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
     const text=String(data.get('text')||'').trim();
     if(!text)return;
     try{
-      await counselingApi.createFeedback(token,{studentId:selectedId,targetType:'week',weekStart,text});
+      const targetType=String(data.get('targetType')||'week') as 'task'|'day'|'week';
+      await counselingApi.createFeedback(token,{
+        studentId:selectedId,
+        targetType,
+        weekStart:targetType==='week'?weekStart:undefined,
+        date:targetType==='day'?String(data.get('date')||''):undefined,
+        targetId:targetType==='task'?String(data.get('targetId')||''):undefined,
+        text,
+      });
       form.reset();
       setFeedback(await counselingApi.listFeedback(token,selectedId));
     }catch(err){setError(err instanceof Error?err.message:'ثبت بازخورد ناموفق بود')}
@@ -371,12 +383,22 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
           </div>
         </section>}
 
-        <ReportSection report={report} title="تحلیل هفتگی دانش‌آموز"/>
+        <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
+        <ReportSection report={report} title="تحلیل عملکرد دانش‌آموز"/>
 
         <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.4fr]">
           <form onSubmit={submitFeedback} className="card p-5 md:p-6">
             <div className="mb-4"><p className="section-kicker">Feedback</p><h2 className="panel-heading">بازخورد هفتگی مشاور</h2><p className="panel-subtitle">این متن مستقیماً در پنل دانش‌آموز نمایش داده می‌شود.</p></div>
-            <textarea name="text" required className="input min-h-32 resize-y" placeholder="تحلیل و توصیه مشاور برای این هفته..."/>
+            <div className="grid gap-3">
+              <select name="targetType" value={feedbackTarget} onChange={e=>setFeedbackTarget(e.target.value as 'task'|'day'|'week')} className="input">
+                <option value="week">بازخورد هفتگی</option>
+                <option value="day">بازخورد روزانه</option>
+                <option value="task">بازخورد روی تسک</option>
+              </select>
+              {feedbackTarget==='day'&&<input name="date" type="date" required className="input" defaultValue={weekStart}/>}
+              {feedbackTarget==='task'&&<select name="targetId" required className="input"><option value="">انتخاب تسک</option>{tasks.map(task=><option key={task._id} value={task._id}>{dayLabels[task.dayIndex]} · {task.subject} · {task.chapter}</option>)}</select>}
+              <textarea name="text" required className="input min-h-32 resize-y" placeholder="تحلیل و توصیه مشاور..."/>
+            </div>
             <button className="btn-primary mt-3 w-full"><MessageSquare size={15}/>ثبت بازخورد</button>
           </form>
           <div className="card overflow-hidden">
@@ -384,6 +406,11 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             {feedback.length?<div className="divide-y divide-white/[.04]">{feedback.slice(0,8).map(item=><div key={item._id} className="p-5"><div className="flex items-center justify-between text-[10px] muted"><span>{item.targetType}</span><span>{item.createdAt.slice(0,10)}</span></div><p className="mt-2 text-sm leading-7 text-[#c5c7d0]">{item.text}</p></div>)}</div>:<div className="p-5"><EmptyState text="بازخوردی ثبت نشده است."/></div>}
           </div>
         </section>
+
+        {adminReviews.length>0&&<section className="mt-4 card overflow-hidden">
+          <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Admin feedback</p><h2 className="panel-heading">بازخورد ادمین برای من</h2></div>
+          <div className="divide-y divide-white/[.04]">{adminReviews.slice(0,8).map(item=><div key={item._id} className="p-5 md:px-6"><p className="text-[10px] muted">{String(item.createdAt||'').slice(0,10)}</p><p className="mt-2 text-sm leading-7 text-[#c5c7d0]">{item.text}</p></div>)}</div>
+        </section>}
       </>}
     </div>
   </CounselingShell>;
@@ -395,24 +422,28 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
   const [tasks,setTasks]=useState<StudyTask[]>([]);
   const [report,setReport]=useState<CounselingReport|null>(null);
   const [feedback,setFeedback]=useState<CounselingFeedback[]>([]);
+  const [exams,setExams]=useState<any[]>([]);
+  const [reportPeriod,setReportPeriod]=useState<CounselingReportPeriod>('week');
   const [error,setError]=useState<string|null>(null);
   const weekStart=currentSaturday();
 
   const load=useCallback(async()=>{
     try{
-      const [nextPlans,nextReport,nextFeedback]=await Promise.all([
+      const [nextPlans,nextReport,nextFeedback,nextExams]=await Promise.all([
         counselingApi.listPlans(token,undefined),
-        counselingApi.getReport(token,{period:'week',anchor:weekStart}),
+        counselingApi.getReport(token,{period:reportPeriod,anchor:weekStart}),
         counselingApi.listFeedback(token),
+        counselingApi.listExams(token),
       ]);
       setPlans(nextPlans);
       setReport(nextReport);
       setFeedback(nextFeedback);
+      setExams(nextExams);
       const current=nextPlans.find(item=>item.weekStart===weekStart)||nextPlans[0]||null;
       setPlan(current);
       setTasks(current?await counselingApi.listPlanTasks(token,current._id):[]);
     }catch(err){setError(err instanceof Error?err.message:'خطا در بارگذاری پنل دانش‌آموز')}
-  },[token,weekStart]);
+  },[token,weekStart,reportPeriod]);
 
   useEffect(()=>{void load()},[load]);
 
@@ -446,7 +477,10 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
         {!plan&&<div className="card p-6"><EmptyState text="مشاور هنوز برنامه‌ای منتشر نکرده است."/></div>}
       </section>
 
+      <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
       <ReportSection report={report} title="تحلیل عملکرد من"/>
+
+      <MockExamSection token={token} meta={meta} track={me.student?.track||'experimental'} exams={exams} onSaved={load}/>
 
       <section className="mt-4 card overflow-hidden">
         <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Counselor feedback</p><h2 className="panel-heading">بازخورد مشاور</h2></div>
@@ -539,6 +573,10 @@ function AdminPanel({token,me}:{token:string;me:CounselingMe}){
       <section className="mt-4 card overflow-hidden">
         <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Quality control</p><h2 className="panel-heading">مشاورها</h2></div>
         {counselors.length?<div className="divide-y divide-white/[.04]">{counselors.map(item=><AdminCounselorRow key={item._id} counselor={item} onSubmit={sendReview}/>)}</div>:<div className="p-5"><EmptyState text="مشاوری وجود ندارد."/></div>}
+      </section>
+      <section className="mt-4 card overflow-hidden">
+        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Students</p><h2 className="panel-heading">همه دانش‌آموزها</h2></div>
+        {students.length?<div className="grid gap-2 p-5 sm:grid-cols-2 xl:grid-cols-3">{students.map(student=><div key={student.userId} className="rounded-[14px] border border-white/[.055] bg-white/[.018] p-4"><div className="flex justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className="pill text-[9px]">{student.status}</span></div><p className="mt-2 text-[11px] muted">{student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p></div>)}</div>:<div className="p-5"><EmptyState text="دانش‌آموزی وجود ندارد."/></div>}
       </section>
     </div>
   </CounselingShell>;
