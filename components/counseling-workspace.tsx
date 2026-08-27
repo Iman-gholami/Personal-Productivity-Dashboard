@@ -69,21 +69,21 @@ export function CounselingWorkspace({token,username}:{token:string;username:stri
 
   useEffect(()=>{void load()},[load]);
 
-  if(loading) return <CounselingShell title="Counseling" subtitle="در حال بارگذاری فضای مشاوره..."><LoadingPanel/></CounselingShell>;
-  if(error||!me||!meta) return <CounselingShell title="Counseling" subtitle="فضای برنامه‌ریزی و گزارش تحصیلی"><ErrorPanel message={error||'اطلاعات کاربر در دسترس نیست'} onRetry={load}/></CounselingShell>;
+  if(loading) return <CounselingShell title="مشاوره تحصیلی" subtitle="در حال بارگذاری فضای مشاوره..."><LoadingPanel/></CounselingShell>;
+  if(error||!me||!meta) return <CounselingShell title="مشاوره تحصیلی" subtitle="فضای برنامه‌ریزی و گزارش تحصیلی"><ErrorPanel message={error||'اطلاعات کاربر در دسترس نیست'} onRetry={load}/></CounselingShell>;
 
   if(me.roles.includes('admin')) return <AdminPanel token={token} me={me}/>;
   if(me.roles.includes('counselor')) return <CounselorPanel token={token} me={me} meta={meta}/>;
   if(me.roles.includes('student')) return <StudentPanel token={token} me={me} meta={meta}/>;
 
-  return <CounselingShell title="Counseling" subtitle="یک فضای مستقل برای مدیریت برنامه و عملکرد دانش‌آموزان">
+  return <CounselingShell title="مشاوره تحصیلی" subtitle="یک فضای مستقل برای مدیریت برنامه و عملکرد دانش‌آموزان">
     <section className="card mx-auto max-w-3xl p-6 md:p-8" dir="rtl">
       <div className="flex items-start gap-4">
         <span className="icon-shell h-12 w-12 shrink-0 text-violet-300"><GraduationCap size={21}/></span>
         <div className="flex-1">
-          <p className="section-kicker">Counseling workspace</p>
+          <p className="section-kicker">فضای مشاوره</p>
           <h2 className="text-xl font-semibold tracking-tight">فضای مشاوره هنوز برای {username} فعال نشده</h2>
-          <p className="mt-3 text-sm leading-7 muted">برای تست MVP می‌توانی همین حساب را به نقش مشاور ارتقا بدهی. در نسخه production می‌توان self-enrollment را با ENV غیرفعال کرد.</p>
+          <p className="mt-3 text-sm leading-7 muted">برای استفاده از این بخش، پنل مشاور را برای همین حساب فعال کن. بعد می‌توانی دانش‌آموز بسازی، برنامه هفتگی ثبت کنی و گزارش‌ها را ببینی.</p>
           <button
             onClick={async()=>{try{await counselingApi.activateCounselor(token);await load()}catch(err){setError(err instanceof Error?err.message:'فعال‌سازی ناموفق بود')}}}
             className="btn-primary mt-5"
@@ -368,7 +368,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       <section id="counseling-students" className="grid scroll-mt-24 gap-4 xl:grid-cols-[1fr_1.5fr]">
         <form onSubmit={createStudent} className="card p-5 md:p-6">
           <div className="mb-5 flex items-start justify-between gap-3">
-            <div><p className="section-kicker">Students</p><h2 className="panel-heading">ایجاد دانش‌آموز</h2><p className="panel-subtitle">حساب دانش‌آموز با کد فعال‌سازی یک‌بارمصرف ساخته می‌شود.</p></div>
+            <div><p className="section-kicker">دانش‌آموزان</p><h2 className="panel-heading">ایجاد دانش‌آموز</h2><p className="panel-subtitle">حساب دانش‌آموز با کد فعال‌سازی یک‌بارمصرف ساخته می‌شود.</p></div>
             <span className="icon-shell text-cyan-300"><UserPlus size={17}/></span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -389,12 +389,12 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
 
         <div className="card p-5 md:p-6">
           <div className="mb-5 flex items-start justify-between gap-3">
-            <div><p className="section-kicker">Roster</p><h2 className="panel-heading">دانش‌آموزان من</h2><p className="panel-subtitle">{students.length} دانش‌آموز فعال یا در انتظار فعال‌سازی</p></div>
+            <div><p className="section-kicker">فهرست دانش‌آموزان</p><h2 className="panel-heading">دانش‌آموزان من</h2><p className="panel-subtitle">{students.length} دانش‌آموز فعال یا در انتظار فعال‌سازی</p></div>
             <span className="icon-shell text-violet-300"><Users size={17}/></span>
           </div>
           {students.length?<div className="grid gap-2 sm:grid-cols-2">{students.map(student=><div key={student.userId} className={`relative rounded-[15px] border p-4 transition ${selectedId===student.userId?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] bg-white/[.02] hover:bg-white/[.04]'}`}>
             <button type="button" onClick={()=>setSelectedId(student.userId)} className="w-full pr-10 text-right">
-              <div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className={`pill text-[9px] ${student.status==='active'?'text-emerald-300':'text-amber-300'}`}>{student.status}</span></div>
+              <div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className={`pill text-[9px] ${student.status==='active'?'text-emerald-300':'text-amber-300'}`}>{studentStatusLabel(student.status)}</span></div>
               <p className="mt-2 text-[11px] muted"><span className="text-[#b0b3bd]">Username:</span> {student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p>
             </button>
             <button type="button" onClick={()=>void removeStudent(student)} disabled={busy} className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 transition hover:bg-rose-500/[.08] hover:text-rose-200" title="حذف دانش‌آموز"><Trash2 size={14}/></button>
@@ -405,7 +405,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       {selectedStudent&&<>
         <section id="counseling-plan" className="mt-4 scroll-mt-24 card p-5 md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div><p className="section-kicker">Weekly plan</p><h2 className="panel-heading">برنامه هفتگی {selectedStudent.displayName}</h2><p className="panel-subtitle">هر هفته از شنبه شروع می‌شود و برنامه می‌تواند قبل یا بعد از انتشار اصلاح شود.</p></div>
+            <div><p className="section-kicker">برنامه هفتگی</p><h2 className="panel-heading">برنامه هفتگی {selectedStudent.displayName}</h2><p className="panel-subtitle">هر هفته از شنبه شروع می‌شود و برنامه می‌تواند قبل یا بعد از انتشار اصلاح شود.</p></div>
             <div className="flex flex-wrap items-center gap-2">
               <input type="date" value={weekStart} onChange={e=>setWeekStart(toSaturdayClient(e.target.value))} className="input w-auto"/>
               {!plans.some(item=>item.weekStart===weekStart)&&<button onClick={()=>void createPlan()} disabled={busy} className="btn-primary"><Plus size={15}/>برنامه جدید</button>}
@@ -413,10 +413,10 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             </div>
           </div>
 
-          {plans.length>0&&<div className="mt-5 flex flex-wrap gap-2">{plans.slice(0,8).map(plan=><button key={plan._id} onClick={()=>void switchPlan(plan._id)} className={`rounded-xl border px-3 py-2 text-xs transition ${selectedPlanId===plan._id?'border-cyan-400/20 bg-cyan-400/[.07] text-cyan-100':'border-white/[.06] text-[#868a97] hover:text-white'}`}>{plan.weekStart} · {plan.status} · v{plan.version}</button>)}</div>}
+          {plans.length>0&&<div className="mt-5 flex flex-wrap gap-2">{plans.slice(0,8).map(plan=><button key={plan._id} onClick={()=>void switchPlan(plan._id)} className={`rounded-xl border px-3 py-2 text-xs transition ${selectedPlanId===plan._id?'border-cyan-400/20 bg-cyan-400/[.07] text-cyan-100':'border-white/[.06] text-[#868a97] hover:text-white'}`}>{plan.weekStart} · {planStatusLabel(plan.status)} · نسخه {plan.version}</button>)}</div>}
 
           {selectedPlan&&<div className="mt-5 flex items-center justify-between rounded-[15px] border border-white/[.055] bg-black/15 p-4">
-            <div><p className="text-sm font-medium">{selectedPlan.weekStart} تا {selectedPlan.weekEnd}</p><p className="mt-1 text-[11px] muted">وضعیت: {selectedPlan.status} · نسخه {selectedPlan.version}</p></div>
+            <div><p className="text-sm font-medium">{selectedPlan.weekStart} تا {selectedPlan.weekEnd}</p><p className="mt-1 text-[11px] muted">وضعیت: {planStatusLabel(selectedPlan.status)} · نسخه {selectedPlan.version}</p></div>
             {selectedPlan.status!=='published'&&<button onClick={()=>void publishPlan()} className="btn-primary"><Send size={15}/>انتشار برای دانش‌آموز</button>}
           </div>}
         </section>
@@ -450,7 +450,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
           </form>
 
           <div className="card overflow-hidden">
-            <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Schedule</p><h2 className="panel-heading">تسک‌های هفته</h2><p className="panel-subtitle">{tasks.length} آیتم برنامه‌ریزی‌شده</p></div>
+            <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">برنامه هفته</p><h2 className="panel-heading">تسک‌های هفته</h2><p className="panel-subtitle">{tasks.length} آیتم برنامه‌ریزی‌شده</p></div>
             {tasks.length?<div className="divide-y divide-white/[.04]">{dayLabels.map((day,index)=>{
               const dayTasks=tasks.filter(task=>task.dayIndex===index);
               if(!dayTasks.length)return null;
@@ -477,7 +477,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
 
         <section id="counseling-feedback" className="mt-4 grid scroll-mt-24 gap-4 xl:grid-cols-[1fr_1.4fr]">
           <form onSubmit={submitFeedback} className="card p-5 md:p-6">
-            <div className="mb-4"><p className="section-kicker">Feedback</p><h2 className="panel-heading">بازخورد هفتگی مشاور</h2><p className="panel-subtitle">این متن مستقیماً در پنل دانش‌آموز نمایش داده می‌شود.</p></div>
+            <div className="mb-4"><p className="section-kicker">بازخورد</p><h2 className="panel-heading">ثبت بازخورد مشاور</h2><p className="panel-subtitle">این متن مستقیماً در پنل دانش‌آموز نمایش داده می‌شود.</p></div>
             <div className="grid gap-3">
               <select name="targetType" value={feedbackTarget} onChange={e=>setFeedbackTarget(e.target.value as 'task'|'day'|'week')} className="input">
                 <option value="week">بازخورد هفتگی</option>
@@ -497,7 +497,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
         </section>
 
         {adminReviews.length>0&&<section className="mt-4 card overflow-hidden">
-          <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Admin feedback</p><h2 className="panel-heading">بازخورد ادمین برای من</h2></div>
+          <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">بازخورد ادمین</p><h2 className="panel-heading">بازخورد ادمین برای من</h2></div>
           <div className="divide-y divide-white/[.04]">{adminReviews.slice(0,8).map(item=><div key={item._id} className="p-5 md:px-6"><p className="text-[10px] muted">{String(item.createdAt||'').slice(0,10)}</p><p className="mt-2 text-sm leading-7 text-[#c5c7d0]">{item.text}</p></div>)}</div>
         </section>}
       </>}
@@ -559,7 +559,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
 
       <section id="student-week" className="mt-4 scroll-mt-24 card p-5 md:p-6">
         <div className="flex items-start justify-between gap-4">
-          <div><p className="section-kicker">This week</p><h2 className="panel-heading">برنامه هفته</h2><p className="panel-subtitle">{plan?plan.weekStart+' تا '+plan.weekEnd:'برنامه منتشرشده‌ای برای این هفته وجود ندارد.'}</p></div>
+          <div><p className="section-kicker">این هفته</p><h2 className="panel-heading">برنامه هفته</h2><p className="panel-subtitle">{plan?plan.weekStart+' تا '+plan.weekEnd:'برنامه منتشرشده‌ای برای این هفته وجود ندارد.'}</p></div>
           <span className="icon-shell text-cyan-300"><CalendarRange size={17}/></span>
         </div>
         {plans.length>1&&<div className="mt-4 flex flex-wrap gap-2">{plans.slice(0,8).map(item=><button key={item._id} onClick={async()=>{setPlan(item);setTasks(await counselingApi.listPlanTasks(token,item._id))}} className={`rounded-xl border px-3 py-2 text-xs ${plan?._id===item._id?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] muted'}`}>{item.weekStart}</button>)}</div>}
@@ -587,7 +587,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
       </div>
 
       <section id="student-feedback" className="mt-4 scroll-mt-24 card overflow-hidden">
-        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Counselor feedback</p><h2 className="panel-heading">بازخورد مشاور</h2></div>
+        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">بازخورد مشاور</p><h2 className="panel-heading">بازخورد مشاور</h2></div>
         {feedback.length?<div className="divide-y divide-white/[.04]">{feedback.slice(0,10).map(item=><div key={item._id} className="p-5 md:px-6"><div className="flex items-center justify-between text-[10px] muted"><span>{item.targetType==='week'?'بازخورد هفتگی':item.targetType==='day'?'بازخورد روزانه':'بازخورد تسک'}</span><span>{item.createdAt.slice(0,10)}</span></div><p className="mt-2 text-sm leading-7 text-[#c6c8d1]">{item.text}</p></div>)}</div>:<div className="p-5"><EmptyState text="هنوز بازخوردی ثبت نشده است."/></div>}
       </section>
     </div>
@@ -678,12 +678,12 @@ function AdminPanel({token,me}:{token:string;me:CounselingMe}){
       {error&&<InlineError message={error}/>}
       <section className="grid gap-3 sm:grid-cols-3"><MiniMetric label="مشاور" value={counselors.length}/><MiniMetric label="دانش‌آموز" value={students.length}/><MiniMetric label="دانش‌آموز فعال" value={students.filter(item=>item.status==='active').length}/></section>
       <section className="mt-4 card overflow-hidden">
-        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Quality control</p><h2 className="panel-heading">مشاورها</h2></div>
+        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">کنترل کیفیت</p><h2 className="panel-heading">مشاورها</h2></div>
         {counselors.length?<div className="divide-y divide-white/[.04]">{counselors.map(item=><AdminCounselorRow key={item._id} counselor={item} onSubmit={sendReview}/>)}</div>:<div className="p-5"><EmptyState text="مشاوری وجود ندارد."/></div>}
       </section>
       <section className="mt-4 card overflow-hidden">
-        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Students</p><h2 className="panel-heading">همه دانش‌آموزها</h2></div>
-        {students.length?<div className="grid gap-2 p-5 sm:grid-cols-2 xl:grid-cols-3">{students.map(student=><div key={student.userId} className="rounded-[14px] border border-white/[.055] bg-white/[.018] p-4"><div className="flex justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className="pill text-[9px]">{student.status}</span></div><p className="mt-2 text-[11px] muted">{student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p></div>)}</div>:<div className="p-5"><EmptyState text="دانش‌آموزی وجود ندارد."/></div>}
+        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">دانش‌آموزان</p><h2 className="panel-heading">همه دانش‌آموزها</h2></div>
+        {students.length?<div className="grid gap-2 p-5 sm:grid-cols-2 xl:grid-cols-3">{students.map(student=><div key={student.userId} className="rounded-[14px] border border-white/[.055] bg-white/[.018] p-4"><div className="flex justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className="pill text-[9px]">{studentStatusLabel(student.status)}</span></div><p className="mt-2 text-[11px] muted">{student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p></div>)}</div>:<div className="p-5"><EmptyState text="دانش‌آموزی وجود ندارد."/></div>}
       </section>
     </div>
   </CounselingShell>;
@@ -761,7 +761,7 @@ function MockExamSection({
   return <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.35fr]" dir="rtl">
     <form onSubmit={submit} className="card p-5 md:p-6">
       <div className="mb-5 flex items-start justify-between gap-3">
-        <div><p className="section-kicker">Mock exam</p><h2 className="panel-heading">ثبت آزمون آزمایشی</h2><p className="panel-subtitle">رتبه، تراز و نتیجه درس‌ها را برای تحلیل روند ثبت کن.</p></div>
+        <div><p className="section-kicker">آزمون آزمایشی</p><h2 className="panel-heading">ثبت آزمون آزمایشی</h2><p className="panel-subtitle">رتبه، تراز و نتیجه درس‌ها را برای تحلیل روند ثبت کن.</p></div>
         <span className="icon-shell text-cyan-300"><Target size={17}/></span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -790,7 +790,7 @@ function MockExamSection({
     </form>
 
     <div className="card p-5 md:p-6">
-      <div className="mb-5"><p className="section-kicker">Exam trend</p><h2 className="panel-heading">روند آزمون‌ها</h2><p className="panel-subtitle">{exams.length} آزمون ثبت‌شده</p></div>
+      <div className="mb-5"><p className="section-kicker">روند آزمون‌ها</p><h2 className="panel-heading">روند آزمون‌ها</h2><p className="panel-subtitle">{exams.length} آزمون ثبت‌شده</p></div>
       {exams.length?<><div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={exams.slice().reverse().slice(-12).map(item=>({date:String(item.date).slice(5),score:Number(item.score||0)}))}>
@@ -818,7 +818,7 @@ function ReportSection({report,title}:{report:CounselingReport|null;title:string
     </div>
     <div className="grid gap-4 xl:grid-cols-[1.45fr_1fr]">
       <div className="card p-5 md:p-6">
-        <div className="mb-4"><p className="section-kicker">Trend</p><h2 className="panel-heading">{title}</h2><p className="panel-subtitle">مطالعه واقعی و درصد اجرای برنامه در طول بازه</p></div>
+        <div className="mb-4"><p className="section-kicker">روند عملکرد</p><h2 className="panel-heading">{title}</h2><p className="panel-subtitle">مطالعه واقعی و درصد اجرای برنامه در طول بازه</p></div>
         <div className="h-[250px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={report.daily.map(item=>({...item,label:item.date.slice(5),hours:Number((item.actualMinutes/60).toFixed(2))}))}>
@@ -833,11 +833,11 @@ function ReportSection({report,title}:{report:CounselingReport|null;title:string
         </div>
       </div>
       <div className="card p-5 md:p-6">
-        <div className="mb-4"><p className="section-kicker">Subjects</p><h2 className="panel-heading">عملکرد درس‌ها</h2><p className="panel-subtitle">درصد اجرای برنامه به تفکیک درس</p></div>
+        <div className="mb-4"><p className="section-kicker">درس‌ها</p><h2 className="panel-heading">عملکرد درس‌ها</h2><p className="panel-subtitle">درصد اجرای برنامه به تفکیک درس</p></div>
         <div className="space-y-4">{report.subjects.length?report.subjects.slice(0,9).map(item=><div key={item.subject}><div className="mb-2 flex items-center justify-between text-xs"><span>{item.subject}</span><span className="text-violet-200">{item.completionRate}%</span></div><div className="h-2 overflow-hidden rounded-full bg-white/[.055]"><div className="h-full rounded-full bg-gradient-to-r from-violet-500 to-cyan-400" style={{width:Math.min(100,item.completionRate)+'%'}}/></div><div className="mt-1 flex justify-between text-[9px] muted"><span>{minutesLabel(item.actualMinutes)}</span><span>{item.attemptedTests} تست · دقت {item.accuracy}%</span></div></div>):<EmptyState text="داده درسی وجود ندارد."/>}</div>
       </div>
     </div>
-    <div className="card p-5 md:p-6"><div className="flex items-start gap-3"><span className="icon-shell h-9 w-9 text-cyan-300"><BarChart3 size={15}/></span><div><p className="section-kicker">System analysis</p><h2 className="panel-heading">خلاصه محاسباتی</h2><p className="mt-2 text-sm leading-7 text-[#c0c3cc]">{report.summary}</p><p className="mt-2 text-[10px] muted">این متن از داده‌های واقعی گزارش ساخته می‌شود و AI نیست.</p></div></div></div>
+    <div className="card p-5 md:p-6"><div className="flex items-start gap-3"><span className="icon-shell h-9 w-9 text-cyan-300"><BarChart3 size={15}/></span><div><p className="section-kicker">خلاصه گزارش</p><h2 className="panel-heading">خلاصه عملکرد</h2><p className="mt-2 text-sm leading-7 text-[#c0c3cc]">{report.summary}</p><p className="mt-2 text-[10px] muted">این متن از داده‌های واقعی گزارش ساخته می‌شود و AI نیست.</p></div></div></div>
   </section>;
 }
 
@@ -848,7 +848,7 @@ function CounselingShell({title,subtitle,badge,children}:{title:string;subtitle:
         <div className="pointer-events-none absolute -right-14 -top-24 h-56 w-56 rounded-full bg-violet-500/[.11] blur-3xl"/>
         <div className="relative flex items-center gap-4">
           <span className="icon-shell h-11 w-11 text-violet-300"><GraduationCap size={19}/></span>
-          <div className="min-w-0 flex-1"><p className="section-kicker">Counseling</p><h1 className="page-title">{title}</h1><p className="page-subtitle">{subtitle}</p></div>
+          <div className="min-w-0 flex-1"><p className="section-kicker">مشاوره تحصیلی</p><h1 className="page-title">{title}</h1><p className="page-subtitle">{subtitle}</p></div>
           {badge&&<span className="pill hidden text-[10px] text-cyan-200 sm:inline-flex">{badge}</span>}
         </div>
       </header>
@@ -866,6 +866,8 @@ function ErrorPanel({message,onRetry}:{message:string;onRetry:()=>void}){return 
 function InlineError({message}:{message:string}){return <div className="mb-4 rounded-[15px] border border-rose-400/15 bg-rose-500/[.07] px-4 py-3 text-xs text-rose-200">{message}</div>}
 function EmptyState({text}:{text:string}){return <p className="text-xs leading-6 muted">{text}</p>}
 
+function studentStatusLabel(status:string){return status==='active'?'فعال':status==='pending'?'در انتظار فعال‌سازی':'غیرفعال'}
+function planStatusLabel(status:string){return status==='published'?'منتشر شده':status==='draft'?'پیش‌نویس':'آرشیو شده'}
 function trackLabel(track:StudentTrack){return track==='experimental'?'تجربی':'ریاضی'}
 function gradeLabel(grade:StudentGrade){return grade==='10'?'دهم':grade==='11'?'یازدهم':grade==='12'?'دوازدهم':'جامع'}
 function activityLabel(meta:CounselingMeta,value:StudyActivityType){return meta.activityTypes.find(item=>item.value===value)?.label||value}
