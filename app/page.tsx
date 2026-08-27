@@ -1,2 +1,2 @@
-import {Sidebar} from '@/components/sidebar'; import {Dashboard} from '@/components/dashboard';
-export default function Page(){return <><Sidebar/><Dashboard/></>}
+import {LifeOSApp} from '@/components/lifeos-app';
+export default function Page(){return <LifeOSApp/>}
