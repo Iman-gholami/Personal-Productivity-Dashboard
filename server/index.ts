@@ -350,7 +350,13 @@ app.use((err:any,_req:any,res:any,_next:any)=>{
 });
 
 mongoose.connect(process.env.MONGODB_URI||'mongodb://127.0.0.1:27017/lifeos')
-  .then(()=>app.listen(process.env.PORT||4000,()=>console.log('LifeOS API ready')))
+  .then(async()=>{
+    await Task.updateMany(
+      {status:'done',$or:[{completedAt:null},{completedAt:{$exists:false}}]},
+      [{$set:{completedAt:'$updatedAt'}}],
+    );
+    app.listen(process.env.PORT||4000,()=>console.log('LifeOS API ready'));
+  })
   .catch(error=>{console.error(error);process.exit(1)});
 
 function currentPeriodStart(now:Date,period:'week'|'month'){
