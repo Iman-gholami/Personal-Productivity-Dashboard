@@ -182,6 +182,8 @@ export const counselingApi={
   listStudents:(token:string)=>request<CounselingStudentProfile[]>('/students',{},token),
   createStudent:(token:string,input:{username:string;displayName:string;track:StudentTrack;grade:StudentGrade})=>
     request<CounselingStudentProfile&{activationCode:string}>('/students',{method:'POST',body:JSON.stringify(input)},token),
+  deleteStudent:(token:string,studentId:string)=>
+    request<{ok:true;studentId:string;previousUsername:string}>(`/students/${studentId}`,{method:'DELETE'},token),
   listPlans:(token:string,studentId?:string,weekStart?:string)=>{
     const params=new URLSearchParams();
     if(studentId) params.set('studentId',studentId);
