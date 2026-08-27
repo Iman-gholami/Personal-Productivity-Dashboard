@@ -357,7 +357,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
 
   const subjects=selectedStudent?meta.subjects[selectedStudent.track]:meta.subjects.experimental;
 
-  return <CounselingShell title="پنل مشاور" subtitle="برنامه‌ریزی هفتگی، گزارش عملکرد و بازخورد دانش‌آموز" badge={me.username}>
+  return <CounselingShell title="پنل مشاور" subtitle="دانش‌آموز را انتخاب کن، برنامه هفته را بساز و بعد گزارش عملکردش را بررسی کن." badge={'مشاور · '+me.username}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
       <CounselingQuickNav items={[
@@ -545,7 +545,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
   const todayIndex=(new Date().getDay()+1)%7;
   const todayTasks=tasks.filter(task=>task.dayIndex===todayIndex);
 
-  return <CounselingShell title="پنل دانش‌آموز" subtitle="برنامه مشاور، ثبت گزارش واقعی و روند پیشرفت" badge={me.student?.displayName||me.username}>
+  return <CounselingShell title="پنل دانش‌آموز" subtitle="اول برنامه‌ات را ببین، بعد از انجام هر تسک نتیجه واقعی را ثبت کن." badge={'دانش‌آموز · '+(me.student?.displayName||me.username)}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
       <CounselingQuickNav items={[
@@ -684,7 +684,7 @@ function AdminPanel({token,me}:{token:string;me:CounselingMe}){
     catch(err){setError(err instanceof Error?err.message:'ثبت بازخورد ناموفق بود')}
   }
 
-  return <CounselingShell title="پنل ادمین مشاوره" subtitle="نمای کلی مشاورها، دانش‌آموزها و کنترل کیفیت" badge={me.username}>
+  return <CounselingShell title="پنل ادمین مشاوره" subtitle="نمای کلی مشاورها و دانش‌آموزها و ثبت بازخورد مدیریتی." badge={'ادمین · '+me.username}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
       <section className="grid gap-3 sm:grid-cols-3"><MiniMetric label="مشاور" value={counselors.length}/><MiniMetric label="دانش‌آموز" value={students.length}/><MiniMetric label="دانش‌آموز فعال" value={students.filter(item=>item.status==='active').length}/></section>
