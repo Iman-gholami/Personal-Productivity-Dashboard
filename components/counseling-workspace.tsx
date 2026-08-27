@@ -645,6 +645,9 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
   const existing=task.submission;
   const [status,setStatus]=useState<StudySubmissionStatus>(existing?.status||'not-started');
   const [open,setOpen]=useState(existing?.status==='in-progress'||existing?.status==='partial');
+  const [correct,setCorrect]=useState(existing?.correctAnswers||0);
+  const [wrong,setWrong]=useState(existing?.wrongAnswers||0);
+  const [unanswered,setUnanswered]=useState(existing?.unanswered||0);
   const [saving,setSaving]=useState(false);
   const [error,setError]=useState<string|null>(null);
 
@@ -653,18 +656,20 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
     const data=new FormData(e.currentTarget);
     setSaving(true);setError(null);
     try{
+      const testsAttempted=correct+wrong+unanswered;
       await counselingApi.saveSubmission(token,task._id,{
         status,
         actualMinutes:Number(data.get('actualMinutes')||0),
-        testsAttempted:Number(data.get('testsAttempted')||0),
-        correctAnswers:Number(data.get('correctAnswers')||0),
-        wrongAnswers:Number(data.get('wrongAnswers')||0),
-        unanswered:Number(data.get('unanswered')||0),
+        testsAttempted,
+        correctAnswers:correct,
+        wrongAnswers:wrong,
+        unanswered,
         pagesRead:Number(data.get('pagesRead')||0),
         studentNote:String(data.get('studentNote')||'').trim(),
         skippedReason:String(data.get('skippedReason')||'').trim(),
       });
       await onSaved();
+      setOpen(false);
     }catch(err){setError(err instanceof Error?err.message:'ثبت گزارش ناموفق بود')}
     finally{setSaving(false)}
   }
@@ -686,13 +691,18 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
         <label className="space-y-1.5"><span className="text-[11px] font-medium muted">زمان واقعی مطالعه (دقیقه)</span><input name="actualMinutes" type="number" min="0" className="input" placeholder="مثلاً ۷۵" defaultValue={existing?.actualMinutes||0}/></label>
         {activitySupportsPages(task.activityType)&&task.plannedPages>0&&<label className="space-y-1.5"><span className="text-[11px] font-medium muted">صفحات خوانده‌شده</span><input name="pagesRead" type="number" min="0" className="input" placeholder="تعداد واقعی صفحه" defaultValue={existing?.pagesRead||0}/></label>}
         {task.plannedTests>0&&<>
-          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">تست انجام‌شده</span><input name="testsAttempted" type="number" min="0" className="input" placeholder="مثلاً ۳۲" defaultValue={existing?.testsAttempted||0}/></label>
-          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پاسخ صحیح</span><input name="correctAnswers" type="number" min="0" className="input" placeholder="تعداد صحیح" defaultValue={existing?.correctAnswers||0}/></label>
-          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پاسخ غلط</span><input name="wrongAnswers" type="number" min="0" className="input" placeholder="تعداد غلط" defaultValue={existing?.wrongAnswers||0}/></label>
-          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">نزده</span><input name="unanswered" type="number" min="0" className="input" placeholder="تعداد نزده" defaultValue={existing?.unanswered||0}/></label>
+          <div className="sm:col-span-2 rounded-xl border border-cyan-400/15 bg-cyan-400/[.05] px-3 py-2 text-[11px]">
+            <div className="flex items-center justify-between gap-3">
+              <span className="muted">مجموع تست ثبت‌شده</span>
+              <strong className="text-cyan-200">{correct+wrong+unanswered} از {task.plannedTests} تست</strong>
+            </div>
+          </div>
+          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پاسخ صحیح</span><input type="number" min="0" className="input" placeholder="تعداد صحیح" value={correct} onChange={e=>setCorrect(Number(e.target.value)||0)}/></label>
+          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پاسخ غلط</span><input type="number" min="0" className="input" placeholder="تعداد غلط" value={wrong} onChange={e=>setWrong(Number(e.target.value)||0)}/></label>
+          <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">نزده</span><input type="number" min="0" className="input" placeholder="تعداد نزده" value={unanswered} onChange={e=>setUnanswered(Number(e.target.value)||0)}/></label>
         </>}
         {(!activitySupportsPages(task.activityType)||task.plannedPages<=0)&&<input type="hidden" name="pagesRead" value="0"/>}
-        {task.plannedTests<=0&&<><input type="hidden" name="testsAttempted" value="0"/><input type="hidden" name="correctAnswers" value="0"/><input type="hidden" name="wrongAnswers" value="0"/><input type="hidden" name="unanswered" value="0"/></>}
+        {task.plannedTests<=0&&<input type="hidden" name="testsAttempted" value="0"/>}
         <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">توضیح برای مشاور</span><textarea name="studentNote" className="input min-h-20 resize-y" placeholder="اگر مشکلی داشتی یا بخشی کامل نشد، اینجا بنویس." defaultValue={existing?.studentNote||''}/></label>
         {status==='skipped'&&<label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium text-amber-300">چرا این تسک انجام نشد؟ (اجباری)</span><textarea name="skippedReason" required className="input min-h-20 resize-y border-amber-400/20" placeholder="دلیل انجام نشدن را بنویس." defaultValue={existing?.skippedReason||''}/></label>}
         {status!=='skipped'&&<input type="hidden" name="skippedReason" value=""/>}
