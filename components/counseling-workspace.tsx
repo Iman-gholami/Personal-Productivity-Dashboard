@@ -1057,14 +1057,19 @@ function ReportSection({report,title}:{report:CounselingReport|null;title:string
 
 function CounselingShell({title,subtitle,badge,children}:{title:string;subtitle:string;badge?:string;children:React.ReactNode}){
   return <main className="min-h-screen md:pl-[252px]">
-    <div className="mx-auto max-w-[1500px] px-5 pb-14 pt-20 md:px-8 md:pt-8 xl:px-10">
-      <header className="animate-in relative mb-7 overflow-hidden rounded-[24px] border border-white/[.06] bg-gradient-to-br from-violet-500/[.06] via-white/[.018] to-cyan-400/[.025] px-5 py-5 md:px-6">
-        <div className="pointer-events-none absolute -right-14 -top-24 h-56 w-56 rounded-full bg-violet-500/[.11] blur-3xl"/>
-        <div className="relative flex items-center gap-4">
-          <span className="icon-shell h-11 w-11 text-violet-300"><GraduationCap size={19}/></span>
-          <div className="min-w-0 flex-1"><p className="section-kicker">مشاوره تحصیلی</p><h1 className="page-title">{title}</h1><p className="page-subtitle">{subtitle}</p></div>
-          {badge&&<span className="pill hidden text-[10px] text-cyan-200 sm:inline-flex">{badge}</span>}
+    <div className="mx-auto max-w-[1420px] px-4 pb-14 pt-20 sm:px-5 md:px-7 md:pt-6 xl:px-9">
+      <header className="counseling-topbar animate-in">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="counseling-topbar-icon"><GraduationCap size={17}/></span>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1>{title}</h1>
+              <span className="counseling-topbar-product">مشاوره تحصیلی</span>
+            </div>
+            <p>{subtitle}</p>
+          </div>
         </div>
+        {badge&&<span className="counseling-role-badge">{badge}</span>}
       </header>
       {children}
     </div>
