@@ -24,6 +24,7 @@ import {
   UserPlus,
   Users,
 } from 'lucide-react';
+import {CounselingSidebar} from './counseling-sidebar';
 import {
   counselingApi,
   CounselingFeedback,
@@ -49,7 +50,7 @@ const statusLabels:Record<StudySubmissionStatus,string>={
   skipped:'انجام نشده',
 };
 
-export function CounselingWorkspace({token,username}:{token:string;username:string}){
+export function CounselingWorkspace({token,username,onLogout}:{token:string;username:string;onLogout:()=>void}){
   const [me,setMe]=useState<CounselingMe|null>(null);
   const [meta,setMeta]=useState<CounselingMeta|null>(null);
   const [loading,setLoading]=useState(true);
@@ -72,9 +73,9 @@ export function CounselingWorkspace({token,username}:{token:string;username:stri
   if(loading) return <CounselingShell title="مشاوره تحصیلی" subtitle="در حال بارگذاری فضای مشاوره..."><LoadingPanel/></CounselingShell>;
   if(error||!me||!meta) return <CounselingShell title="مشاوره تحصیلی" subtitle="فضای برنامه‌ریزی و گزارش تحصیلی"><ErrorPanel message={error||'اطلاعات کاربر در دسترس نیست'} onRetry={load}/></CounselingShell>;
 
-  if(me.roles.includes('admin')) return <AdminPanel token={token} me={me}/>;
-  if(me.roles.includes('counselor')) return <CounselorPanel token={token} me={me} meta={meta}/>;
-  if(me.roles.includes('student')) return <StudentPanel token={token} me={me} meta={meta}/>;
+  if(me.roles.includes('admin')) return <><CounselingSidebar role="admin" username={username} onLogout={onLogout}/><AdminPanel token={token} me={me}/></>;
+  if(me.roles.includes('counselor')) return <><CounselingSidebar role="counselor" username={username} onLogout={onLogout}/><CounselorPanel token={token} me={me} meta={meta}/></>;
+  if(me.roles.includes('student')) return <><CounselingSidebar role="student" username={username} onLogout={onLogout}/><StudentPanel token={token} me={me} meta={meta}/></>;
 
   return <CounselingShell title="مشاوره تحصیلی" subtitle="یک فضای مستقل برای مدیریت برنامه و عملکرد دانش‌آموزان">
     <section className="card mx-auto max-w-3xl p-6 md:p-8" dir="rtl">
