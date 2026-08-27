@@ -1051,3 +1051,156 @@ html[data-theme="light"] .student-feedback-card{
 }
 html[data-theme="light"] .student-feedback-card span{color:#a16207}
 html[data-theme="light"] .student-feedback-card p{color:#4b5f53}
+
+
+/* Counseling shell polish */
+.counseling-brand-card{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 12px 34px rgba(0,0,0,.14);
+}
+.counseling-nav-item{
+  position:relative;
+}
+.counseling-nav-item:before{
+  content:"";
+  width:3px;
+  height:18px;
+  border-radius:999px;
+  background:linear-gradient(180deg,#8b6cff,#35d6c7);
+  opacity:0;
+  transform:scaleY(.45);
+  transition:.2s ease;
+}
+.counseling-nav-item:hover:before{
+  opacity:.9;
+  transform:scaleY(1);
+}
+.counseling-nav-item>span:first-of-type{
+  transition:transform .2s ease,background .2s ease,color .2s ease;
+}
+.counseling-nav-item:hover>span:first-of-type{
+  transform:translateX(-1px);
+  background:rgba(139,108,255,.08);
+  color:#cfc6ff;
+}
+.counseling-user-card{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+/* Counselor workspace v2 */
+.counselor-dashboard{
+  --counselor-border:rgba(255,255,255,.07);
+  --counselor-surface:rgba(255,255,255,.022);
+}
+.counselor-context-card{
+  display:grid;
+  gap:1rem;
+  border:1px solid rgba(139,108,255,.16);
+  border-radius:23px;
+  background:
+    radial-gradient(circle at 85% 10%,rgba(53,214,199,.07),transparent 28%),
+    linear-gradient(145deg,rgba(17,20,29,.94),rgba(9,11,17,.90));
+  padding:1rem;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 52px rgba(0,0,0,.16);
+}
+.counselor-context-main{display:flex;align-items:center;gap:.8rem}
+.counselor-avatar{
+  display:grid;
+  width:46px;height:46px;flex:0 0 46px;place-items:center;
+  border-radius:15px;
+  border:1px solid rgba(139,108,255,.18);
+  background:linear-gradient(145deg,rgba(139,108,255,.18),rgba(53,214,199,.06));
+  color:#d8d0ff;
+  font-size:17px;
+  font-weight:800;
+}
+.counselor-context-label{font-size:9px;color:#8e82c8}
+.counselor-context-main h2{margin-top:.1rem;font-size:17px;font-weight:700}
+.counselor-context-main p{margin-top:.15rem;color:#7f8491;font-size:9px}
+.counselor-context-stats{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.5rem;
+}
+.counselor-context-stats>div{
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:13px;
+  background:rgba(255,255,255,.018);
+  padding:.65rem .7rem;
+}
+.counselor-context-stats strong{display:block;font-size:14px}
+.counselor-context-stats span{display:block;margin-top:.1rem;color:#757a87;font-size:9px}
+.counselor-context-empty{
+  display:flex;
+  align-items:center;
+  gap:.8rem;
+  border:1px dashed rgba(139,108,255,.20);
+  border-radius:19px;
+  background:rgba(139,108,255,.025);
+  padding:1rem;
+  color:#8175bd;
+}
+.counselor-context-empty strong{display:block;color:#c0b9df;font-size:12px}
+.counselor-context-empty span{display:block;margin-top:.15rem;color:#767b87;font-size:9px}
+.counselor-plan-shell{
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:17px;
+  background:rgba(255,255,255,.015);
+  padding:1rem;
+}
+.counselor-builder-card,
+.counselor-week-card{
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:18px;
+  background:linear-gradient(145deg,rgba(16,19,27,.90),rgba(10,12,18,.86));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+.counselor-builder-card{padding:1.1rem}
+.counselor-week-card{min-height:100%}
+.counselor-builder-card .input{
+  min-height:44px;
+}
+.counselor-builder-card label>span{
+  color:#8e93a0;
+}
+.counselor-builder-card textarea.input{min-height:96px}
+
+@media (min-width:900px){
+  .counselor-context-card{grid-template-columns:minmax(0,1fr) minmax(420px,.8fr);align-items:center;padding:1.1rem 1.2rem}
+  .counselor-context-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+html[data-theme="light"] .counseling-nav-item:hover>span:first-of-type{background:rgba(16,185,129,.08);color:#047857}
+html[data-theme="light"] .counselor-dashboard{
+  --counselor-border:rgba(20,83,45,.09);
+  --counselor-surface:rgba(255,255,255,.82);
+}
+html[data-theme="light"] .counselor-context-card{
+  border-color:rgba(5,150,105,.14);
+  background:
+    radial-gradient(circle at 85% 10%,rgba(16,185,129,.09),transparent 28%),
+    linear-gradient(145deg,#ffffff,#f7fcf9);
+  box-shadow:0 16px 42px rgba(30,80,55,.06);
+}
+html[data-theme="light"] .counselor-avatar{
+  border-color:rgba(5,150,105,.14);
+  background:linear-gradient(145deg,#ecfdf5,#f5fffa);
+  color:#047857;
+}
+html[data-theme="light"] .counselor-context-label{color:#047857}
+html[data-theme="light"] .counselor-context-stats>div{
+  border-color:rgba(20,83,45,.08);
+  background:#fbfefc;
+}
+html[data-theme="light"] .counselor-context-empty{
+  border-color:rgba(5,150,105,.18);
+  background:rgba(16,185,129,.035);
+  color:#047857;
+}
+html[data-theme="light"] .counselor-context-empty strong{color:#225c45}
+html[data-theme="light"] .counselor-plan-shell,
+html[data-theme="light"] .counselor-builder-card,
+html[data-theme="light"] .counselor-week-card{
+  border-color:rgba(20,83,45,.09);
+  background:linear-gradient(145deg,#ffffff,#f9fdfb);
+  box-shadow:0 10px 28px rgba(30,80,55,.04);
+}
