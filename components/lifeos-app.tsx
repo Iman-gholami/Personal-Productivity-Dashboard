@@ -18,7 +18,7 @@ import {Sidebar,WorkspaceView} from './sidebar';
 import {Dashboard,nextStatus} from './dashboard';
 import {WorkspaceViews} from './workspace-views';
 import {CounselingWorkspace} from './counseling-workspace';
-import {counselingApi} from '@/lib/counseling-api';
+import {counselingApi,CounselingApiError} from '@/lib/counseling-api';
 import {ThemeToggle} from './theme-toggle';
 
 const TOKEN_KEY='lifeos_token';
@@ -105,13 +105,12 @@ export function LifeOSApp(){
       setAccountMode(mode);
       if(mode==='personal') await load(currentToken,'week');
     }catch(err){
-      if(err instanceof ApiError&&err.status===401){
+      if((err instanceof CounselingApiError||err instanceof ApiError)&&err.status===401){
         logout();
         return;
       }
       setError(err instanceof Error?err.message:'Unable to resolve account role');
-      setAccountMode('personal');
-      await load(currentToken,'week');
+      setAccountMode(null);
     }finally{
       setResolvingRole(false);
     }
