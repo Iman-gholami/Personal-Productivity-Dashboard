@@ -81,7 +81,7 @@ const recurringInput=taskObject.omit({dayIndex:true,order:true}).and(z.object({
 const submissionInput=z.object({
   status:z.enum(submissionStatuses),
   actualMinutes:z.number().int().min(0).max(1440).default(0),
-  testsAttempted:z.number().int().min(0).max(5000).default(0),
+  testsAttempted:z.number().int().min(0).max(5000).optional().default(0),
   correctAnswers:z.number().int().min(0).max(5000).default(0),
   wrongAnswers:z.number().int().min(0).max(5000).default(0),
   unanswered:z.number().int().min(0).max(5000).default(0),
@@ -89,14 +89,13 @@ const submissionInput=z.object({
   studentNote:z.string().trim().max(3000).optional().default(''),
   skippedReason:z.string().trim().max(1000).optional().default(''),
 }).superRefine((value,ctx)=>{
-  const answerTotal=value.correctAnswers+value.wrongAnswers+value.unanswered;
-  if(answerTotal!==value.testsAttempted){
-    ctx.addIssue({code:z.ZodIssueCode.custom,path:['testsAttempted'],message:'Correct + wrong + unanswered must equal tests attempted'});
-  }
   if(value.status==='skipped'&&!value.skippedReason){
-    ctx.addIssue({code:z.ZodIssueCode.custom,path:['skippedReason'],message:'Skipped reason is required'});
+    ctx.addIssue({code:z.ZodIssueCode.custom,path:['skippedReason'],message:'دلیل انجام نشدن تسک را وارد کن'});
   }
-});
+}).transform(value=>({
+  ...value,
+  testsAttempted:value.correctAnswers+value.wrongAnswers+value.unanswered,
+}));
 
 const feedbackInput=z.object({
   studentId:z.string().min(1),
