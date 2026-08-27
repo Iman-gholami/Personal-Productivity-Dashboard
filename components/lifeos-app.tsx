@@ -296,7 +296,6 @@ function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:st
           <h1 className="max-w-sm text-[34px] font-semibold leading-[1.08] tracking-[-.05em]">Turn daily effort into visible momentum.</h1>
           <p className="mt-4 max-w-sm text-sm leading-6 text-[#898d9b]">Track work, learning goals and progress in one focused command center.</p>
         </div>
-
         <div className="relative mt-auto space-y-3">
           <div className="rounded-[16px] border border-white/[.06] bg-white/[.025] p-4">
             <div className="flex items-center gap-2 text-xs font-medium"><Sparkles size={14} className="text-violet-300"/>Work + Learning analytics</div>
@@ -310,25 +309,21 @@ function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:st
         <div className="mb-8 md:hidden">
           <div className="mb-4 flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-[13px] bg-gradient-to-br from-violet-400 via-violet-600 to-cyan-500"><Command size={18}/></div><div><p className="font-semibold">LifeOS</p><p className="text-[9px] uppercase tracking-[.2em] text-violet-300/80">Personal command</p></div></div>
         </div>
-
         <div className="mb-7">
           <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-[#727684]"><ShieldCheck size={13} className="text-cyan-300"/>Secure session</div>
           <h2 className="text-2xl font-semibold tracking-[-.035em]">{mode==='login'?'Welcome back':'Create your workspace'}</h2>
           <p className="mt-2 text-sm text-[#7d8190]">{mode==='login'?'Sign in to continue to your command center.':'Create an account to start tracking your work and learning.'}</p>
         </div>
-
         <div className="mb-5 grid grid-cols-2 rounded-[14px] border border-white/[.055] bg-black/20 p-1">
           <button type="button" onClick={()=>{setMode('login');setError(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='login'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Login</button>
           <button type="button" onClick={()=>{setMode('register');setError(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='register'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Register</button>
         </div>
-
         <form onSubmit={submit} className="space-y-3">
           <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Username</label><input name="username" required minLength={3} maxLength={40} className="input" placeholder="Enter username" autoComplete="username" defaultValue={username}/></div>
           <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Password</label><input name="password" required minLength={8} maxLength={100} type="password" className="input" placeholder="Enter password" autoComplete={mode==='login'?'current-password':'new-password'} defaultValue={password}/></div>
           {error&&<p className="rounded-[12px] border border-rose-400/15 bg-rose-500/[.07] px-3 py-2.5 text-xs text-rose-200">{error}</p>}
           <button disabled={busy} className="btn-primary mt-1 w-full">{busy?'Working...':mode==='login'?'Enter LifeOS':'Create account'}</button>
         </form>
-
         <div className="mt-6 flex items-center justify-between border-t border-white/[.055] pt-4 text-[10px] text-[#656977]">
           <span>Next.js proxy</span>
           <span className="flex items-center gap-1.5"><span className="status-dot"/>Backend online</span>
