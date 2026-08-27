@@ -1,5 +1,7 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'done';
 export type TaskPriority = 'low' | 'medium' | 'high';
+export type TaskCategory = 'Splunk' | 'Security' | 'Automation' | 'DevOps' | 'Meeting' | 'Support' | 'Other';
+export type ReportPeriod = 'week' | 'month';
 
 export interface ApiTask {
   _id: string;
@@ -7,9 +9,12 @@ export interface ApiTask {
   title: string;
   description?: string;
   projectId?: string;
+  category?: TaskCategory;
   categoryId?: string;
   status: TaskStatus;
   priority: TaskPriority;
+  startedAt?: string;
+  completedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,14 +38,26 @@ export interface ApiCategory {
 export interface ApiLearningItem {
   _id: string;
   title: string;
-  type: 'course' | 'book' | 'skill';
+  type: 'course' | 'book';
   description?: string;
   totalHours: number;
   completedHours: number;
+  totalPages: number;
+  completedPages: number;
   startDate?: string;
   status: 'not-started' | 'in-progress' | 'completed';
   createdAt: string;
   updatedAt: string;
+}
+
+export interface ApiLearningSession {
+  _id: string;
+  learningItemId: string;
+  durationHours: number;
+  pagesRead: number;
+  note?: string;
+  date: string;
+  createdAt: string;
 }
 
 export interface ApiReview {
@@ -54,14 +71,38 @@ export interface ApiReview {
   updatedAt: string;
 }
 
+export interface ApiReport {
+  period: ReportPeriod;
+  range: { start: string; end: string };
+  work: {
+    completed: number;
+    previousCompleted: number;
+    changePercent: number;
+    daily: { date: string; count: number }[];
+    categories: { name: string; count: number }[];
+    summary: string;
+  };
+  learning: {
+    hours: number;
+    previousHours: number;
+    pages: number;
+    previousPages: number;
+    hoursChangePercent: number;
+    pagesChangePercent: number;
+    daily: { date: string; hours: number; pages: number }[];
+    streak: number;
+    summary: string;
+  };
+}
+
 interface AuthResponse {
   token: string;
 }
 
 interface LearningSessionResponse {
+  session: ApiLearningSession;
   item: ApiLearningItem;
   progress: number;
-  remainingHours: number;
 }
 
 const API_URL = '/backend';
@@ -130,8 +171,10 @@ export const api = {
       title: string;
       description?: string;
       priority: TaskPriority;
+      category: TaskCategory;
       projectId?: string;
-      categoryId?: string;
+      status?: TaskStatus;
+      startedAt?: string;
     },
   ) {
     return request<ApiTask>('/tasks', {
@@ -141,7 +184,11 @@ export const api = {
     });
   },
 
-  updateTask(token: string, id: string, changes: Partial<Pick<ApiTask, 'status' | 'priority' | 'title' | 'description' | 'projectId' | 'categoryId'>>) {
+  updateTask(
+    token: string,
+    id: string,
+    changes: Partial<Pick<ApiTask, 'status' | 'priority' | 'title' | 'description' | 'projectId' | 'category' | 'startedAt'>>,
+  ) {
     return request<ApiTask>(`/tasks/${id}`, {
       method: 'PATCH',
       token,
@@ -149,8 +196,20 @@ export const api = {
     });
   },
 
+  deleteTask(token: string, id: string) {
+    return request<void>(`/tasks/${id}`, { method: 'DELETE', token });
+  },
+
   listProjects(token: string) {
     return request<ApiProject[]>('/projects', { token });
+  },
+
+  createProject(token: string, project: { name: string; description?: string }) {
+    return request<ApiProject>('/projects', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(project),
+    });
   },
 
   listCategories(token: string) {
@@ -161,11 +220,37 @@ export const api = {
     return request<ApiLearningItem[]>('/learning', { token });
   },
 
-  logLearningSession(token: string, learningItemId: string, duration: number) {
+  createLearningItem(
+    token: string,
+    item: {
+      title: string;
+      type: 'course' | 'book';
+      description?: string;
+      totalHours?: number;
+      totalPages?: number;
+      startDate?: string;
+    },
+  ) {
+    return request<ApiLearningItem>('/learning', {
+      method: 'POST',
+      token,
+      body: JSON.stringify(item),
+    });
+  },
+
+  listLearningSessions(token: string) {
+    return request<ApiLearningSession[]>('/learning/sessions', { token });
+  },
+
+  logLearningSession(
+    token: string,
+    learningItemId: string,
+    input: { durationHours?: number; pagesRead?: number; note?: string; date?: string },
+  ) {
     return request<LearningSessionResponse>(`/learning/${learningItemId}/sessions`, {
       method: 'POST',
       token,
-      body: JSON.stringify({ duration }),
+      body: JSON.stringify(input),
     });
   },
 
@@ -182,5 +267,9 @@ export const api = {
       token,
       body: JSON.stringify(review),
     });
+  },
+
+  getReport(token: string, period: ReportPeriod) {
+    return request<ApiReport>(`/reports?period=${period}`, { token });
   },
 };
