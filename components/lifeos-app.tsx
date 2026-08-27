@@ -19,6 +19,7 @@ import {Dashboard,nextStatus} from './dashboard';
 import {WorkspaceViews} from './workspace-views';
 import {CounselingWorkspace} from './counseling-workspace';
 import {counselingApi} from '@/lib/counseling-api';
+import {ThemeToggle} from './theme-toggle';
 
 const TOKEN_KEY='lifeos_token';
 const USER_KEY='lifeos_username';
@@ -299,6 +300,7 @@ function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:st
   }
 
   return <main className="relative grid min-h-screen place-items-center overflow-hidden px-5 py-10">
+    <div className="absolute right-5 top-5 z-30"><ThemeToggle/></div>
     <div className="pointer-events-none absolute left-1/2 top-[-180px] h-[460px] w-[760px] -translate-x-1/2 rounded-full bg-violet-600/[.13] blur-[120px]"/>
     <div className="pointer-events-none absolute bottom-[-160px] right-[-120px] h-[360px] w-[360px] rounded-full bg-cyan-400/[.07] blur-[110px]"/>
 
