@@ -85,6 +85,38 @@ export interface StudyTask{
   submission?:StudySubmission|null;
 }
 
+export interface CounselorStudentOverview{
+  studentId:string;
+  displayName:string;
+  username:string;
+  track:StudentTrack;
+  grade:StudentGrade;
+  status:'pending'|'active'|'inactive';
+  planStatus:'draft'|'published'|'archived'|null;
+  health:'no-plan'|'no-report'|'attention'|'on-track'|'complete';
+  plannedTasks:number;
+  completedTasks:number;
+  partialTasks:number;
+  skippedTasks:number;
+  completionRate:number;
+  actualMinutes:number;
+  attemptedTests:number;
+  accuracy:number;
+  today:{
+    plannedTasks:number;
+    completedTasks:number;
+    actualMinutes:number;
+    completionRate:number;
+  };
+  lastSubmittedAt:string|null;
+}
+
+export interface CounselorOverview{
+  weekStart:string;
+  weekEnd:string;
+  students:CounselorStudentOverview[];
+}
+
 export interface CounselingFeedback{
   _id:string;
   counselorId:string;
@@ -180,6 +212,8 @@ export const counselingApi={
   activateStudent:(input:{username:string;activationCode:string;password:string})=>
     request<{ok:true}>('/student/activate',{method:'POST',body:JSON.stringify(input)}),
   listStudents:(token:string)=>request<CounselingStudentProfile[]>('/students',{},token),
+  counselorOverview:(token:string,weekStart:string)=>
+    request<CounselorOverview>('/counselor/overview?'+new URLSearchParams({weekStart}).toString(),{},token),
   createStudent:(token:string,input:{username:string;displayName:string;track:StudentTrack;grade:StudentGrade})=>
     request<CounselingStudentProfile&{activationCode:string}>('/students',{method:'POST',body:JSON.stringify(input)},token),
   deleteStudent:(token:string,studentId:string)=>
