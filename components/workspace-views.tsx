@@ -346,22 +346,39 @@ function LearningView({
       <Metric label="vs previous hours" value={signedPercent(report?.learning.hoursChangePercent??0)}/>
     </section>
 
-    <section className="mt-4 card p-5">
-      <div className="mb-5 flex items-center justify-between gap-3">
-        <div><h2 className="font-medium">Learning trend</h2><p className="mt-1 text-xs muted">Hours studied per day</p></div>
-        <PeriodSwitch value={reportPeriod} onChange={onReportPeriodChange}/>
+    <section className="mt-4 grid gap-4 xl:grid-cols-2">
+      <div className="card p-5">
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div><h2 className="font-medium">Study hours trend</h2><p className="mt-1 text-xs muted">Hours studied per day</p></div>
+          <PeriodSwitch value={reportPeriod} onChange={onReportPeriodChange}/>
+        </div>
+        <div className="h-[250px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={(report?.learning.daily||[]).map(item=>({...item,label:item.date.slice(5)}))}>
+              <defs><linearGradient id="studyArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#22c7b8" stopOpacity={.35}/><stop offset="1" stopColor="#22c7b8" stopOpacity={0}/></linearGradient></defs>
+              <CartesianGrid vertical={false} stroke="#ffffff0b"/>
+              <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#8d8c98'}}/>
+              <YAxis axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#8d8c98'}} width={28}/>
+              <Tooltip contentStyle={{background:'#15151d',border:'1px solid #ffffff12',borderRadius:12,fontSize:12}}/>
+              <Area type="monotone" dataKey="hours" stroke="#22c7b8" strokeWidth={2.5} fill="url(#studyArea)"/>
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-      <div className="h-[270px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={(report?.learning.daily||[]).map(item=>({...item,label:item.date.slice(5)}))}>
-            <defs><linearGradient id="studyArea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#22c7b8" stopOpacity={.35}/><stop offset="1" stopColor="#22c7b8" stopOpacity={0}/></linearGradient></defs>
-            <CartesianGrid vertical={false} stroke="#ffffff0b"/>
-            <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#8d8c98'}}/>
-            <YAxis axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#8d8c98'}} width={28}/>
-            <Tooltip contentStyle={{background:'#15151d',border:'1px solid #ffffff12',borderRadius:12,fontSize:12}}/>
-            <Area type="monotone" dataKey="hours" stroke="#22c7b8" strokeWidth={2.5} fill="url(#studyArea)"/>
-          </AreaChart>
-        </ResponsiveContainer>
+
+      <div className="card p-5">
+        <div className="mb-5"><h2 className="font-medium">Pages read trend</h2><p className="mt-1 text-xs muted">Book pages logged per day</p></div>
+        <div className="h-[250px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={(report?.learning.daily||[]).map(item=>({...item,label:item.date.slice(5)}))}>
+              <CartesianGrid vertical={false} stroke="#ffffff0b"/>
+              <XAxis dataKey="label" axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#8d8c98'}}/>
+              <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#8d8c98'}} width={30}/>
+              <Tooltip contentStyle={{background:'#15151d',border:'1px solid #ffffff12',borderRadius:12,fontSize:12}}/>
+              <Bar dataKey="pages" fill="#8b6cff" radius={[6,6,0,0]}/>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </section>
 
