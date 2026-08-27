@@ -37,7 +37,7 @@ const planInput=z.object({
   copyFromPlanId:z.string().min(1).optional(),
 });
 
-const taskBase=z.object({
+const taskObject=z.object({
   dayIndex:z.number().int().min(0).max(6),
   track:z.enum(tracks),
   grade:z.enum(grades),
@@ -51,7 +51,8 @@ const taskBase=z.object({
   plannedPages:z.number().int().min(0).max(5000).default(0),
   description:z.string().trim().max(3000).optional().default(''),
   order:z.number().int().min(0).max(500).default(0),
-}).refine(value=>value.plannedMinutes>0||value.plannedTests>0||value.plannedPages>0,{
+});
+const taskBase=taskObject.refine(value=>value.plannedMinutes>0||value.plannedTests>0||value.plannedPages>0,{
   message:'At least one planned target is required',
 });
 
@@ -71,7 +72,7 @@ const taskPatch=z.object({
   order:z.number().int().min(0).max(500).optional(),
 });
 
-const recurringInput=taskBase.omit({dayIndex:true,order:true}).and(z.object({
+const recurringInput=taskObject.omit({dayIndex:true,order:true}).and(z.object({
   daysOfWeek:z.array(z.number().int().min(0).max(6)).min(1).max(7),
   startsOn:dateString,
   endsOn:dateString.optional().default(''),
@@ -298,8 +299,10 @@ export function registerCounselingRoutes(app:Express){
       const studentId=await resolveStudentAccess(req,res,String(req.query.studentId||''));
       if(!studentId) return;
       const filter:any={studentId};
+      const viewer=await User.findById(req.userId).select('roles');
+      if(normalizedRoles(viewer).includes('student')) filter.status='published';
       if(req.query.weekStart) filter.weekStart=dateString.parse(String(req.query.weekStart));
-      if(normalizedQuery(req.query.includeArchived)!=='true') filter.status={$ne:'archived'};
+      if(normalizedQuery(req.query.includeArchived)!=='true'&&!filter.status) filter.status={$ne:'archived'};
       const plans=await WeeklyPlan.find(filter).sort({weekStart:-1,version:-1}).limit(24).lean();
       res.json(plans);
     }catch(error){next(error)}
@@ -352,6 +355,7 @@ export function registerCounselingRoutes(app:Express){
         }
       }
       await materializeRecurringRules(body.studentId,counselorId,plan);
+      await Promise.all(Array.from({length:7},(_,dayIndex)=>recomputeDailyMetric(body.studentId,addDays(weekStart,dayIndex))));
       await logAudit(req.userId!,'plan.create','WeeklyPlan',plan._id,null,plan.toJSON());
       res.status(201).json(plan);
     }catch(error){next(error)}
@@ -371,6 +375,10 @@ export function registerCounselingRoutes(app:Express){
       if(body.status==='published') plan.publishedAt=new Date();
       if(before.status==='published'&&body.status!=='archived') plan.version=Number(plan.version||1)+1;
       await plan.save();
+      if(body.status==='archived'){
+        await StudyTask.updateMany({planId:plan._id},{$set:{archived:true}});
+        await Promise.all(Array.from({length:7},(_,dayIndex)=>recomputeDailyMetric(String(plan.studentId),addDays(plan.weekStart,dayIndex))));
+      }
       await logAudit(req.userId!,'plan.status','WeeklyPlan',plan._id,before,plan.toJSON());
       res.json(plan);
     }catch(error){next(error)}
@@ -382,6 +390,8 @@ export function registerCounselingRoutes(app:Express){
       if(!plan) return res.status(404).json({error:'Plan not found'});
       const studentId=await resolveStudentAccess(req,res,String(plan.studentId));
       if(!studentId) return;
+      const viewer=await User.findById(req.userId).select('roles');
+      if(normalizedRoles(viewer).includes('student')&&plan.status!=='published') return res.status(403).json({error:'Plan is not published'});
       const tasks=await StudyTask.find({planId:plan._id,archived:false}).sort({dayIndex:1,order:1,createdAt:1}).lean();
       const submissions=await TaskSubmission.find({taskId:{$in:tasks.map(task=>task._id)}}).lean();
       const submissionMap=new Map(submissions.map(item=>[String(item.taskId),item]));
