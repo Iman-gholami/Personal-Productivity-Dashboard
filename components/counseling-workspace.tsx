@@ -506,7 +506,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{task.subject} · {task.chapter}</p><span className="pill text-[9px] text-violet-200">{activityLabel(meta,task.activityType)}</span></div>
                     <p className="mt-2 text-[11px] leading-5 muted">{task.book||'بدون نام کتاب'}{task.topic?' · '+task.topic:''}</p>
-                    <p className="mt-2 text-[11px] text-[#9a9daa]">{task.plannedMinutes?task.plannedMinutes+' دقیقه ':''}{task.plannedTests?' · '+task.plannedTests+' تست':''}{activitySupportsPages(task.activityType)&&task.plannedPages?' · '+task.plannedPages+' صفحه':''}</p>
+                    <p className="mt-2 text-[11px] text-[#9a9daa]">{task.plannedMinutes?task.plannedMinutes+' دقیقه ':''}{activitySupportsTests(task.activityType)&&task.plannedTests?' · '+task.plannedTests+' تست':''}{activitySupportsPages(task.activityType)&&task.plannedPages?' · '+task.plannedPages+' صفحه':''}</p>
                     {task.description&&<p className="mt-2 text-xs leading-6 text-[#b8bac4]">{task.description}</p>}</div>
                     <div className="flex gap-1"><button onClick={()=>{setEditingTask(task);setTaskActivity(task.activityType)}} className="grid h-8 w-8 place-items-center rounded-lg border border-white/[.07] text-[#898d99] hover:text-white" title="ویرایش"><Edit3 size={14}/></button><button onClick={()=>void removeTask(task)} className="grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 hover:bg-rose-500/[.08]" title="حذف"><Trash2 size={14}/></button></div>
                   </div>
@@ -643,6 +643,8 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
 
 function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;meta:CounselingMeta;onSaved:()=>Promise<void>}){
   const existing=task.submission;
+  const taskUsesTests=activitySupportsTests(task.activityType)&&task.plannedTests>0;
+  const taskUsesPages=activitySupportsPages(task.activityType)&&task.plannedPages>0;
   const [status,setStatus]=useState<StudySubmissionStatus>(existing?.status||'not-started');
   const [open,setOpen]=useState(existing?.status==='in-progress'||existing?.status==='partial');
   const [correct,setCorrect]=useState(existing?.correctAnswers||0);
@@ -656,15 +658,15 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
     const data=new FormData(e.currentTarget);
     setSaving(true);setError(null);
     try{
-      const testsAttempted=correct+wrong+unanswered;
+      const testsAttempted=taskUsesTests?correct+wrong+unanswered:0;
       await counselingApi.saveSubmission(token,task._id,{
         status,
         actualMinutes:Number(data.get('actualMinutes')||0),
         testsAttempted,
-        correctAnswers:correct,
-        wrongAnswers:wrong,
-        unanswered,
-        pagesRead:Number(data.get('pagesRead')||0),
+        correctAnswers:taskUsesTests?correct:0,
+        wrongAnswers:taskUsesTests?wrong:0,
+        unanswered:taskUsesTests?unanswered:0,
+        pagesRead:taskUsesPages?Number(data.get('pagesRead')||0):0,
         studentNote:String(data.get('studentNote')||'').trim(),
         skippedReason:String(data.get('skippedReason')||'').trim(),
       });
@@ -679,7 +681,7 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
       <div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{task.subject} · {task.chapter}</p><span className="pill text-[9px] text-violet-200">{activityLabel(meta,task.activityType)}</span></div><p className="mt-2 text-[11px] muted">{task.book||'—'}{task.topic?' · '+task.topic:''}</p></div>
       <CheckCircle2 size={17} className={existing?.status==='done'?'text-emerald-300':'text-[#5f6370]'}/>
     </div>
-    <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-[#9699a6]"><span className="pill">{task.plannedMinutes} دقیقه</span>{task.plannedTests>0&&<span className="pill">{task.plannedTests} تست</span>}{activitySupportsPages(task.activityType)&&task.plannedPages>0&&<span className="pill">{task.plannedPages} صفحه</span>}</div>
+    <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-[#9699a6]"><span className="pill">{task.plannedMinutes} دقیقه</span>{taskUsesTests&&<span className="pill">{task.plannedTests} تست</span>}{taskUsesPages&&<span className="pill">{task.plannedPages} صفحه</span>}</div>
     {task.description&&<p className="mt-3 rounded-xl border border-white/[.04] bg-black/15 p-3 text-xs leading-6 text-[#b8bac4]">{task.description}</p>}
     {existing&&<div className="mt-3 flex items-center justify-between rounded-xl border border-white/[.05] bg-white/[.02] px-3 py-2 text-[11px]"><span className="muted">آخرین وضعیت ثبت‌شده</span><span className="font-medium">{statusLabels[existing.status]}</span></div>}
     <button type="button" onClick={()=>setOpen(value=>!value)} className="btn-secondary mt-3 w-full">{open?'بستن فرم گزارش':existing?'ویرایش گزارش':'ثبت گزارش این تسک'}</button>
@@ -689,8 +691,8 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">وضعیت انجام</span><select value={status} onChange={e=>setStatus(e.target.value as StudySubmissionStatus)} className="input">{Object.entries(statusLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
         <label className="space-y-1.5"><span className="text-[11px] font-medium muted">زمان واقعی مطالعه (دقیقه)</span><input name="actualMinutes" type="number" min="0" className="input" placeholder="مثلاً ۷۵" defaultValue={existing?.actualMinutes||0}/></label>
-        {activitySupportsPages(task.activityType)&&task.plannedPages>0&&<label className="space-y-1.5"><span className="text-[11px] font-medium muted">صفحات خوانده‌شده</span><input name="pagesRead" type="number" min="0" className="input" placeholder="تعداد واقعی صفحه" defaultValue={existing?.pagesRead||0}/></label>}
-        {task.plannedTests>0&&<>
+        {taskUsesPages&&<label className="space-y-1.5"><span className="text-[11px] font-medium muted">صفحات خوانده‌شده</span><input name="pagesRead" type="number" min="0" className="input" placeholder="تعداد واقعی صفحه" defaultValue={existing?.pagesRead||0}/></label>}
+        {taskUsesTests&&<>
           <div className="sm:col-span-2 rounded-xl border border-cyan-400/15 bg-cyan-400/[.05] px-3 py-2 text-[11px]">
             <div className="flex items-center justify-between gap-3">
               <span className="muted">مجموع تست ثبت‌شده</span>
@@ -701,8 +703,8 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
           <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پاسخ غلط</span><input type="number" min="0" className="input" placeholder="تعداد غلط" value={wrong} onChange={e=>setWrong(Number(e.target.value)||0)}/></label>
           <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">نزده</span><input type="number" min="0" className="input" placeholder="تعداد نزده" value={unanswered} onChange={e=>setUnanswered(Number(e.target.value)||0)}/></label>
         </>}
-        {(!activitySupportsPages(task.activityType)||task.plannedPages<=0)&&<input type="hidden" name="pagesRead" value="0"/>}
-        {task.plannedTests<=0&&<input type="hidden" name="testsAttempted" value="0"/>}
+        {!taskUsesPages&&<input type="hidden" name="pagesRead" value="0"/>}
+        {!taskUsesTests&&<input type="hidden" name="testsAttempted" value="0"/>}
         <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">توضیح برای مشاور</span><textarea name="studentNote" className="input min-h-20 resize-y" placeholder="اگر مشکلی داشتی یا بخشی کامل نشد، اینجا بنویس." defaultValue={existing?.studentNote||''}/></label>
         {status==='skipped'&&<label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium text-amber-300">چرا این تسک انجام نشد؟ (اجباری)</span><textarea name="skippedReason" required className="input min-h-20 resize-y border-amber-400/20" placeholder="دلیل انجام نشدن را بنویس." defaultValue={existing?.skippedReason||''}/></label>}
         {status!=='skipped'&&<input type="hidden" name="skippedReason" value=""/>}
@@ -932,6 +934,7 @@ function studentStatusLabel(status:string){return status==='active'?'فعال':s
 function planStatusLabel(status:string){return status==='published'?'منتشر شده':status==='draft'?'پیش‌نویس':'آرشیو شده'}
 function trackLabel(track:StudentTrack){return track==='experimental'?'تجربی':'ریاضی'}
 function gradeLabel(grade:StudentGrade){return grade==='10'?'دهم':grade==='11'?'یازدهم':grade==='12'?'دوازدهم':'جامع'}
+function activitySupportsTests(value:StudyActivityType){return ['educational-test','timed-test','exam'].includes(value)}
 function activitySupportsPages(value:StudyActivityType){return ['study','review','summary','remediation'].includes(value)}
 function activityLabel(meta:CounselingMeta,value:StudyActivityType){return meta.activityTypes.find(item=>item.value===value)?.label||value}
 function minutesLabel(minutes:number){const h=Math.floor(minutes/60);const m=minutes%60;return h?m?`${h}س ${m}د`:`${h} ساعت`:`${m} دقیقه`}
