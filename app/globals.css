@@ -581,3 +581,138 @@ html[data-theme="light"] .counseling-disclosure-violet{border-color:rgba(16,185,
 html[data-theme="light"] .counseling-disclosure-emerald{border-color:rgba(5,150,105,.20)}
 html[data-theme="light"] .counseling-disclosure-cyan{border-color:rgba(13,148,136,.18)}
 html[data-theme="light"] .counseling-disclosure-amber{border-color:rgba(217,119,6,.18)}
+
+
+/* Student weekly progress */
+.student-week-summary{
+  border:1px solid rgba(52,211,153,.18);
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(16,185,129,.08),rgba(8,10,15,.78));
+  padding:1.1rem;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 18px 50px rgba(0,0,0,.16);
+}
+.student-week-summary-main{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+}
+.student-week-status-grid{
+  margin-top:1rem;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.55rem;
+}
+.student-week-status-grid>div{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.6rem;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:13px;
+  background:rgba(255,255,255,.022);
+  padding:.65rem .75rem;
+}
+.student-week-status-grid strong{font-size:15px}
+.student-week-status-grid span{font-size:10px;color:var(--muted)}
+.student-progress-ring{
+  --progress:0;
+  width:72px;
+  height:72px;
+  flex:0 0 72px;
+  display:grid;
+  place-items:center;
+  border-radius:999px;
+  background:
+    radial-gradient(circle at center,#0c0f15 56%,transparent 57%),
+    conic-gradient(#34d399 calc(var(--progress)*1%),rgba(255,255,255,.07) 0);
+  box-shadow:0 10px 28px rgba(16,185,129,.10);
+}
+.student-progress-ring strong{font-size:13px;color:#bff7df}
+
+.student-task-card{
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:17px;
+  background:rgba(255,255,255,.018);
+  padding:1rem;
+  transition:border-color .2s ease,background .2s ease,box-shadow .2s ease,transform .2s ease;
+}
+.student-task-card:hover{transform:translateY(-1px)}
+.student-task-done{
+  border-color:rgba(52,211,153,.28);
+  background:linear-gradient(145deg,rgba(16,185,129,.08),rgba(16,185,129,.025));
+  box-shadow:inset 3px 0 0 rgba(52,211,153,.55),0 12px 34px rgba(16,185,129,.08);
+}
+.student-task-partial{
+  border-color:rgba(251,191,36,.26);
+  background:linear-gradient(145deg,rgba(251,191,36,.065),rgba(251,191,36,.02));
+  box-shadow:inset 3px 0 0 rgba(251,191,36,.45);
+}
+.student-task-progress{
+  border-color:rgba(139,108,255,.25);
+  background:linear-gradient(145deg,rgba(139,108,255,.065),rgba(139,108,255,.02));
+  box-shadow:inset 3px 0 0 rgba(139,108,255,.45);
+}
+.student-task-skipped{
+  border-color:rgba(244,63,94,.20);
+  background:linear-gradient(145deg,rgba(244,63,94,.05),rgba(244,63,94,.015));
+  opacity:.86;
+  box-shadow:inset 3px 0 0 rgba(244,63,94,.34);
+}
+.student-task-status{
+  display:inline-flex;
+  align-items:center;
+  border-radius:999px;
+  padding:.22rem .5rem;
+  font-size:9px;
+  font-weight:700;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.025);
+  color:#989ca8;
+}
+.student-task-status-done{color:#86efac;border-color:rgba(52,211,153,.18);background:rgba(16,185,129,.07)}
+.student-task-status-partial{color:#fcd34d;border-color:rgba(251,191,36,.18);background:rgba(251,191,36,.06)}
+.student-task-status-in-progress{color:#c4b5fd;border-color:rgba(139,108,255,.18);background:rgba(139,108,255,.06)}
+.student-task-status-skipped{color:#fda4af;border-color:rgba(244,63,94,.16);background:rgba(244,63,94,.05)}
+.student-task-check{
+  display:grid;
+  width:32px;
+  height:32px;
+  flex:0 0 32px;
+  place-items:center;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.06);
+  color:#5f6370;
+  background:rgba(255,255,255,.018);
+}
+.student-task-check-done{
+  border-color:rgba(52,211,153,.22);
+  background:rgba(16,185,129,.10);
+  color:#86efac;
+  box-shadow:0 0 0 4px rgba(16,185,129,.04);
+}
+
+@media (min-width:640px){
+  .student-week-status-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+html[data-theme="light"] .student-week-summary{
+  border-color:rgba(5,150,105,.18);
+  background:linear-gradient(145deg,rgba(236,253,245,.96),rgba(255,255,255,.96));
+  box-shadow:0 16px 38px rgba(30,80,55,.07);
+}
+html[data-theme="light"] .student-week-status-grid>div{
+  border-color:rgba(20,83,45,.08);
+  background:rgba(255,255,255,.75);
+}
+html[data-theme="light"] .student-progress-ring{
+  background:
+    radial-gradient(circle at center,#ffffff 56%,transparent 57%),
+    conic-gradient(#10b981 calc(var(--progress)*1%),rgba(20,83,45,.08) 0);
+}
+html[data-theme="light"] .student-progress-ring strong{color:#047857}
+html[data-theme="light"] .student-task-card{border-color:rgba(20,83,45,.09);background:rgba(255,255,255,.75)}
+html[data-theme="light"] .student-task-done{border-color:rgba(5,150,105,.22);background:linear-gradient(145deg,rgba(236,253,245,.98),rgba(255,255,255,.96))}
+html[data-theme="light"] .student-task-partial{border-color:rgba(217,119,6,.20);background:linear-gradient(145deg,rgba(255,251,235,.96),rgba(255,255,255,.96))}
+html[data-theme="light"] .student-task-progress{border-color:rgba(5,150,105,.18);background:linear-gradient(145deg,rgba(240,253,250,.96),rgba(255,255,255,.96))}
+html[data-theme="light"] .student-task-skipped{border-color:rgba(190,24,93,.15);background:linear-gradient(145deg,rgba(255,241,242,.96),rgba(255,255,255,.96))}
