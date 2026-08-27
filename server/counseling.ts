@@ -238,6 +238,85 @@ export function registerCounselingRoutes(app:Express){
     }catch(error){next(error)}
   });
 
+  app.get('/api/counseling/counselor/overview',auth,async(req:AuthRequest,res,next)=>{
+    try{
+      const role=await authorize(req,res,['counselor','admin']);
+      if(!role) return;
+      const weekStart=toSaturday(String(req.query.weekStart||formatDate(new Date())));
+      const weekEnd=addDays(weekStart,6);
+      const assignments=role==='admin'
+        ? await CounselorAssignment.find({status:'active'}).lean()
+        : await CounselorAssignment.find({counselorId:req.userId,status:'active'}).lean();
+      const studentIds=assignments.map(item=>item.studentId);
+      if(!studentIds.length) return res.json({weekStart,weekEnd,students:[]});
+
+      const [profiles,users,plans,metrics,lastSubmissions]=await Promise.all([
+        StudentProfile.find({userId:{$in:studentIds},status:{$ne:'inactive'}}).lean(),
+        User.find({_id:{$in:studentIds}}).select('username').lean(),
+        WeeklyPlan.find({studentId:{$in:studentIds},weekStart,status:{$ne:'archived'}}).lean(),
+        StudentDailyMetric.find({studentId:{$in:studentIds},date:{$gte:weekStart,$lte:weekEnd}}).lean(),
+        TaskSubmission.aggregate([
+          {$match:{studentId:{$in:studentIds}}},
+          {$sort:{submittedAt:-1}},
+          {$group:{_id:'$studentId',submittedAt:{$first:'$submittedAt'}}},
+        ]),
+      ]);
+
+      const userMap=new Map(users.map(item=>[String(item._id),item]));
+      const planMap=new Map(plans.map(item=>[String(item.studentId),item]));
+      const lastMap=new Map(lastSubmissions.map((item:any)=>[String(item._id),item.submittedAt]));
+      const metricsMap=new Map<string,any[]>();
+      for(const metric of metrics){
+        const key=String(metric.studentId);
+        const current=metricsMap.get(key)||[];
+        current.push(metric);
+        metricsMap.set(key,current);
+      }
+
+      const students=profiles.map(profile=>{
+        const studentId=String(profile.userId);
+        const items=metricsMap.get(studentId)||[];
+        const summary=aggregateMetrics(items);
+        const plan=planMap.get(studentId);
+        const today=items.find(item=>item.date===formatDate(new Date()));
+        const lastSubmittedAt=lastMap.get(studentId)||null;
+        let health:'no-plan'|'no-report'|'attention'|'on-track'|'complete'='on-track';
+        if(!plan) health='no-plan';
+        else if(summary.plannedTasks>0&&summary.actualMinutes===0&&summary.completedTasks===0&&summary.partialTasks===0) health='no-report';
+        else if(summary.plannedTasks>0&&summary.completionRate<50) health='attention';
+        else if(summary.plannedTasks>0&&summary.completionRate>=95) health='complete';
+
+        return {
+          studentId,
+          displayName:profile.displayName,
+          username:userMap.get(studentId)?.username||'',
+          track:profile.track,
+          grade:profile.grade,
+          status:profile.status,
+          planStatus:plan?.status||null,
+          health,
+          plannedTasks:summary.plannedTasks,
+          completedTasks:summary.completedTasks,
+          partialTasks:summary.partialTasks,
+          skippedTasks:summary.skippedTasks,
+          completionRate:summary.completionRate,
+          actualMinutes:summary.actualMinutes,
+          attemptedTests:summary.attemptedTests,
+          accuracy:summary.accuracy,
+          today:{
+            plannedTasks:Number(today?.plannedTasks||0),
+            completedTasks:Number(today?.completedTasks||0),
+            actualMinutes:Number(today?.actualMinutes||0),
+            completionRate:Number(today?.completionRate||0),
+          },
+          lastSubmittedAt,
+        };
+      });
+
+      res.json({weekStart,weekEnd,students});
+    }catch(error){next(error)}
+  });
+
   app.post('/api/counseling/students',auth,async(req:AuthRequest,res,next)=>{
     let createdUser:any=null;
     try{
