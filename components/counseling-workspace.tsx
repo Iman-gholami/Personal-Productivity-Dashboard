@@ -603,6 +603,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
 function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;meta:CounselingMeta;onSaved:()=>Promise<void>}){
   const existing=task.submission;
   const [status,setStatus]=useState<StudySubmissionStatus>(existing?.status||'not-started');
+  const [open,setOpen]=useState(existing?.status==='in-progress'||existing?.status==='partial');
   const [saving,setSaving]=useState(false);
   const [error,setError]=useState<string|null>(null);
 
@@ -634,8 +635,10 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
     </div>
     <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-[#9699a6]"><span className="pill">{task.plannedMinutes} دقیقه</span>{task.plannedTests>0&&<span className="pill">{task.plannedTests} تست</span>}{task.plannedPages>0&&<span className="pill">{task.plannedPages} صفحه</span>}</div>
     {task.description&&<p className="mt-3 rounded-xl border border-white/[.04] bg-black/15 p-3 text-xs leading-6 text-[#b8bac4]">{task.description}</p>}
+    {existing&&<div className="mt-3 flex items-center justify-between rounded-xl border border-white/[.05] bg-white/[.02] px-3 py-2 text-[11px]"><span className="muted">آخرین وضعیت ثبت‌شده</span><span className="font-medium">{statusLabels[existing.status]}</span></div>}
+    <button type="button" onClick={()=>setOpen(value=>!value)} className="btn-secondary mt-3 w-full">{open?'بستن فرم گزارش':existing?'ویرایش گزارش':'ثبت گزارش این تسک'}</button>
 
-    <div className="mt-4 rounded-[14px] border border-white/[.05] bg-black/10 p-3">
+    {open&&<div className="mt-3 rounded-[14px] border border-white/[.05] bg-black/10 p-3">
       <p className="mb-3 text-xs font-semibold">گزارش من برای این تسک</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">وضعیت انجام</span><select value={status} onChange={e=>setStatus(e.target.value as StudySubmissionStatus)} className="input">{Object.entries(statusLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
@@ -653,9 +656,11 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
         {status==='skipped'&&<label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium text-amber-300">چرا این تسک انجام نشد؟ (اجباری)</span><textarea name="skippedReason" required className="input min-h-20 resize-y border-amber-400/20" placeholder="دلیل انجام نشدن را بنویس." defaultValue={existing?.skippedReason||''}/></label>}
         {status!=='skipped'&&<input type="hidden" name="skippedReason" value=""/>}
       </div>
-    </div>
-    {error&&<p className="mt-2 text-xs text-rose-300">{error}</p>}
-    <button disabled={saving} className="btn-primary mt-3 w-full">{saving?'در حال ثبت...':'ثبت گزارش این تسک'}</button>
+    </div>}
+    {open&&<>
+      {error&&<p className="mt-2 text-xs text-rose-300">{error}</p>}
+      <button disabled={saving} className="btn-primary mt-3 w-full">{saving?'در حال ثبت...':'ذخیره گزارش'}</button>
+    </>}
   </form>;
 }
 
