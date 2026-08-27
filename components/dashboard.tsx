@@ -2,18 +2,19 @@
 import {useMemo,useState} from 'react';
 import {BookOpen,Check,Clock3,FolderKanban,LogOut,Plus,Sparkles,Target,TrendingUp,Zap} from 'lucide-react';
 import {ActivityChart} from './charts';
-import type {ApiLearningItem,ApiProject,ApiTask,TaskPriority,TaskStatus} from '@/lib/api';
+import type {ApiLearningItem,ApiProject,ApiReport,ApiTask,TaskPriority,TaskStatus} from '@/lib/api';
 
 const statusLabel:Record<TaskStatus,string>={todo:'Todo','in-progress':'In progress',done:'Done'};
 const nextStatus:Record<TaskStatus,TaskStatus>={todo:'in-progress','in-progress':'done',done:'todo'};
 
 export function Dashboard({
-  username,tasks,projects,learning,loading,error,onCreateTask,onAdvanceTask,onLogout
+  username,tasks,projects,learning,report,loading,error,onCreateTask,onAdvanceTask,onLogout
 }:{
   username:string;
   tasks:ApiTask[];
   projects:ApiProject[];
   learning:ApiLearningItem[];
+  report:ApiReport|null;
   loading:boolean;
   error:string|null;
   onCreateTask:(input:{title:string;description?:string;priority:TaskPriority})=>Promise<void>;
@@ -112,12 +113,12 @@ export function Dashboard({
           <div className="relative flex items-start justify-between gap-4">
             <div>
               <p className="section-kicker">Momentum</p>
-              <p className="panel-heading">Weekly focus</p>
-              <p className="panel-subtitle">A visual pulse of your recent activity.</p>
+              <p className="panel-heading">Weekly activity</p>
+              <p className="panel-subtitle">Your actual completed tasks and study hours from this week.</p>
             </div>
-            <span className="pill text-[10px] text-cyan-200/80"><Sparkles size={11}/>Activity</span>
+            <span className="pill text-[10px] text-cyan-200/80"><Sparkles size={11}/>Live data</span>
           </div>
-          <div className="mt-3"><ActivityChart/></div>
+          <div className="mt-3"><ActivityChart work={report?.work.daily||[]} learning={report?.learning.daily||[]}/></div>
         </div>
 
         <div className="card animate-in p-5 md:p-6">
