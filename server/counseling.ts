@@ -559,7 +559,7 @@ export function registerCounselingRoutes(app:Express){
       const submission=await TaskSubmission.findOneAndUpdate(
         {taskId:task._id},
         {$set:{...body,studentId:task.studentId,submittedAt:new Date()}},
-        {new:true,upsert:true,runValidators:true,setDefaultsOnInsert:true},
+        {returnDocument:'after',upsert:true,runValidators:true,setDefaultsOnInsert:true},
       );
       await recomputeDailyMetric(String(task.studentId),task.date);
       await logAudit(req.userId!,'submission.upsert','TaskSubmission',submission._id,null,submission.toJSON());
@@ -889,7 +889,7 @@ async function recomputeDailyMetric(studentId:string,date:string){
   await StudentDailyMetric.findOneAndUpdate(
     {studentId,date},
     {$set:{studentId,date,...metric}},
-    {upsert:true,new:true,setDefaultsOnInsert:true},
+    {upsert:true,returnDocument:'after',setDefaultsOnInsert:true},
   );
   return metric;
 }
