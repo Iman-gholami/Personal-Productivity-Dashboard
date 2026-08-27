@@ -411,3 +411,19 @@ html[data-theme="light"] [class*="bg-gradient-to"][class*="from-violet"] > svg,
 html[data-theme="light"] [class*="bg-gradient-to"][class*="from-violet"] > span{
   color:white!important;
 }
+
+
+html[data-theme="light"] .recharts-default-tooltip{
+  background:rgba(255,255,255,.96)!important;
+  border-color:rgba(20,83,45,.13)!important;
+  color:#173124!important;
+  box-shadow:0 14px 36px rgba(30,80,55,.10)!important;
+}
+html[data-theme="light"] .recharts-tooltip-label,
+html[data-theme="light"] .recharts-tooltip-item{color:#315848!important}
+html[data-theme="light"] svg [stroke="#9a7cff"],
+html[data-theme="light"] svg [stroke="#b19cff"]{stroke:#059669!important}
+html[data-theme="light"] svg [fill="#35d6c7"]{fill:#10b981!important}
+html[data-theme="light"] svg stop[stop-color="#9a7cff"],
+html[data-theme="light"] svg stop[stop-color="#7b63ff"]{stop-color:#10b981!important}
+html[data-theme="light"] svg stop[stop-color="#35d6c7"]{stop-color:#34d399!important}
