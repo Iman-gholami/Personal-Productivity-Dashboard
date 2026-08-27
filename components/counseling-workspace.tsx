@@ -587,11 +587,39 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
 
   const todayIndex=(new Date().getDay()+1)%7;
   const todayTasks=tasks.filter(task=>task.dayIndex===todayIndex);
+  const weeklyDone=tasks.filter(task=>task.submission?.status==='done').length;
+  const weeklyPartial=tasks.filter(task=>task.submission?.status==='partial').length;
+  const weeklyInProgress=tasks.filter(task=>task.submission?.status==='in-progress').length;
+  const weeklySkipped=tasks.filter(task=>task.submission?.status==='skipped').length;
+  const weeklyRemaining=Math.max(0,tasks.length-weeklyDone-weeklyPartial-weeklyInProgress-weeklySkipped);
+  const weeklyProgress=tasks.length?Math.round((weeklyDone/tasks.length)*100):0;
 
   return <CounselingShell title="پنل دانش‌آموز" subtitle="اول برنامه‌ات را ببین، بعد از انجام هر تسک نتیجه واقعی را ثبت کن." badge={'دانش‌آموز · '+(me.student?.displayName||me.username)}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section className="student-week-summary">
+        <div className="student-week-summary-main">
+          <div>
+            <p className="text-[11px] font-semibold text-emerald-300">وضعیت این هفته</p>
+            <h2 className="mt-1 text-xl font-semibold">{tasks.length} تسک در برنامه</h2>
+            <p className="mt-1 text-xs muted">{weeklyDone} انجام‌شده · {weeklyRemaining} باقی‌مانده</p>
+          </div>
+          <div className="student-progress-ring" style={{'--progress':weeklyProgress} as React.CSSProperties}>
+            <strong>{weeklyProgress}%</strong>
+          </div>
+        </div>
+        <div className="student-week-status-grid">
+          <div><strong>{weeklyDone}</strong><span>انجام‌شده</span></div>
+          <div><strong>{weeklyInProgress}</strong><span>در حال انجام</span></div>
+          <div><strong>{weeklyPartial}</strong><span>نیمه‌کاره</span></div>
+          <div><strong>{weeklySkipped}</strong><span>انجام‌نشده</span></div>
+        </div>
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[.06]">
+          <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-500" style={{width:weeklyProgress+'%'}}/>
+        </div>
+      </section>
+
+      <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MiniMetric label="اجرای برنامه" value={(report?.metrics.completionRate??0)+'%'}/>
         <MiniMetric label="مطالعه این هفته" value={minutesLabel(report?.metrics.actualMinutes??0)}/>
         <MiniMetric label="تست ثبت‌شده" value={report?.metrics.attemptedTests??0}/>
@@ -613,8 +641,12 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
         {plan&&dayLabels.map((day,index)=>{
           const items=tasks.filter(task=>task.dayIndex===index);
           if(!items.length)return null;
+          const dayDone=items.filter(task=>task.submission?.status==='done').length;
           return <div key={day} className="card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/[.055] p-5 md:px-6"><div><p className="section-kicker">{day}</p><h2 className="panel-heading">{items.length} تسک</h2></div><ClipboardCheck size={17} className="text-violet-300"/></div>
+            <div className="flex items-center justify-between border-b border-white/[.055] p-5 md:px-6">
+              <div><p className="section-kicker">{day}</p><h2 className="panel-heading">{dayDone} از {items.length} انجام شده</h2></div>
+              <div className="flex items-center gap-2"><span className="pill text-[10px] text-emerald-200">{Math.round((dayDone/items.length)*100)}%</span><ClipboardCheck size={17} className={dayDone===items.length?'text-emerald-300':'text-violet-300'}/></div>
+            </div>
             <div className="grid gap-3 p-4 lg:grid-cols-2 md:p-5">{items.map(task=><StudentTaskCard key={task._id} token={token} task={task} meta={meta} onSaved={load}/>)}</div>
           </div>;
         })}
