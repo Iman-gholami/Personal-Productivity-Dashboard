@@ -128,7 +128,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
     try{
       const [nextPlans,nextReport,nextFeedback]=await Promise.all([
         counselingApi.listPlans(token,studentId),
-        counselingApi.getReport(token,{studentId,period:reportPeriod,anchor:weekStart}),
+        counselingApi.getReport(token,{studentId,period:reportPeriod,anchor:reportPeriod==='day'?todayDateClient():weekStart}),
         counselingApi.listFeedback(token,studentId),
       ]);
       setPlans(nextPlans);
@@ -431,7 +431,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
     try{
       const [nextPlans,nextReport,nextFeedback,nextExams]=await Promise.all([
         counselingApi.listPlans(token,undefined),
-        counselingApi.getReport(token,{period:reportPeriod,anchor:weekStart}),
+        counselingApi.getReport(token,{period:reportPeriod,anchor:reportPeriod==='day'?todayDateClient():weekStart}),
         counselingApi.listFeedback(token),
         counselingApi.listExams(token),
       ]);
@@ -591,6 +591,113 @@ function AdminCounselorRow({counselor,onSubmit}:{counselor:any;onSubmit:(id:stri
   </div>;
 }
 
+function ReportPeriodControls({value,onChange}:{value:CounselingReportPeriod;onChange:(value:CounselingReportPeriod)=>void}){
+  return <div className="mt-4 flex justify-end" dir="rtl">
+    <div className="flex rounded-[13px] border border-white/[.06] bg-black/20 p-1">
+      {([
+        ['day','روزانه'],
+        ['week','هفتگی'],
+        ['month','ماهانه'],
+      ] as [CounselingReportPeriod,string][]).map(([period,label])=><button key={period} onClick={()=>onChange(period)} className={`rounded-[10px] px-4 py-2 text-xs font-medium transition ${value===period?'bg-white/[.09] text-white':'text-[#777b88] hover:text-white'}`}>{label}</button>)}
+    </div>
+  </div>;
+}
+
+function MockExamSection({
+  token,meta,track,exams,onSaved,
+}:{
+  token:string;
+  meta:CounselingMeta;
+  track:StudentTrack;
+  exams:any[];
+  onSaved:()=>Promise<void>;
+}){
+  const subjects=meta.subjects[track]||meta.subjects.experimental;
+  const [rows,setRows]=useState([{subject:subjects[0]||'',correct:0,wrong:0,unanswered:0,percentage:0}]);
+  const [saving,setSaving]=useState(false);
+  const [error,setError]=useState<string|null>(null);
+
+  function updateRow(index:number,key:string,value:string|number){
+    setRows(current=>current.map((row,rowIndex)=>rowIndex===index?{...row,[key]:typeof value==='string'&&key!=='subject'?Number(value):value}:row));
+  }
+
+  async function submit(e:FormEvent<HTMLFormElement>){
+    e.preventDefault();
+    const form=e.currentTarget;
+    const data=new FormData(form);
+    setSaving(true);setError(null);
+    try{
+      await counselingApi.createExam(token,{
+        examName:String(data.get('examName')||'').trim(),
+        provider:String(data.get('provider')||'').trim(),
+        date:String(data.get('date')||todayDateClient()),
+        rank:Number(data.get('rank')||0),
+        regionalRank:Number(data.get('regionalRank')||0),
+        score:Number(data.get('score')||0),
+        subjects:rows.filter(row=>row.subject).map(row=>({
+          subject:row.subject,
+          correct:Number(row.correct||0),
+          wrong:Number(row.wrong||0),
+          unanswered:Number(row.unanswered||0),
+          percentage:Number(row.percentage||0),
+        })),
+      });
+      form.reset();
+      setRows([{subject:subjects[0]||'',correct:0,wrong:0,unanswered:0,percentage:0}]);
+      await onSaved();
+    }catch(err){setError(err instanceof Error?err.message:'ثبت آزمون ناموفق بود')}
+    finally{setSaving(false)}
+  }
+
+  return <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.35fr]" dir="rtl">
+    <form onSubmit={submit} className="card p-5 md:p-6">
+      <div className="mb-5 flex items-start justify-between gap-3">
+        <div><p className="section-kicker">Mock exam</p><h2 className="panel-heading">ثبت آزمون آزمایشی</h2><p className="panel-subtitle">رتبه، تراز و نتیجه درس‌ها را برای تحلیل روند ثبت کن.</p></div>
+        <span className="icon-shell text-cyan-300"><Target size={17}/></span>
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input name="examName" required className="input sm:col-span-2" placeholder="نام آزمون، مثلاً قلم‌چی ۵ شهریور"/>
+        <input name="provider" className="input" placeholder="مؤسسه"/>
+        <input name="date" type="date" required defaultValue={todayDateClient()} className="input"/>
+        <input name="score" type="number" min="0" step="0.01" className="input" placeholder="تراز"/>
+        <input name="rank" type="number" min="0" className="input" placeholder="رتبه"/>
+        <input name="regionalRank" type="number" min="0" className="input sm:col-span-2" placeholder="رتبه منطقه (اختیاری)"/>
+      </div>
+      <div className="mt-4 space-y-3">
+        <div className="flex items-center justify-between"><p className="text-xs font-medium">نتیجه درس‌ها</p><button type="button" onClick={()=>setRows(current=>[...current,{subject:subjects[0]||'',correct:0,wrong:0,unanswered:0,percentage:0}])} className="btn-secondary px-3 py-2 text-xs"><Plus size={13}/>درس</button></div>
+        {rows.map((row,index)=><div key={index} className="grid gap-2 rounded-[14px] border border-white/[.05] bg-white/[.018] p-3 sm:grid-cols-5">
+          <select className="input sm:col-span-2" value={row.subject} onChange={e=>updateRow(index,'subject',e.target.value)}>{subjects.map(subject=><option key={subject}>{subject}</option>)}</select>
+          <input className="input" type="number" min="0" placeholder="صحیح" value={row.correct} onChange={e=>updateRow(index,'correct',e.target.value)}/>
+          <input className="input" type="number" min="0" placeholder="غلط" value={row.wrong} onChange={e=>updateRow(index,'wrong',e.target.value)}/>
+          <div className="flex gap-2 sm:col-span-5">
+            <input className="input" type="number" min="0" placeholder="نزده" value={row.unanswered} onChange={e=>updateRow(index,'unanswered',e.target.value)}/>
+            <input className="input" type="number" min="-100" max="100" step="0.01" placeholder="درصد" value={row.percentage} onChange={e=>updateRow(index,'percentage',e.target.value)}/>
+            {rows.length>1&&<button type="button" onClick={()=>setRows(current=>current.filter((_,rowIndex)=>rowIndex!==index))} className="grid w-11 shrink-0 place-items-center rounded-xl border border-rose-400/10 text-rose-300"><Trash2 size={14}/></button>}
+          </div>
+        </div>)}
+      </div>
+      {error&&<p className="mt-3 text-xs text-rose-300">{error}</p>}
+      <button disabled={saving} className="btn-primary mt-4 w-full">{saving?'در حال ثبت...':'ثبت نتیجه آزمون'}</button>
+    </form>
+
+    <div className="card p-5 md:p-6">
+      <div className="mb-5"><p className="section-kicker">Exam trend</p><h2 className="panel-heading">روند آزمون‌ها</h2><p className="panel-subtitle">{exams.length} آزمون ثبت‌شده</p></div>
+      {exams.length?<><div className="h-[220px]">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={exams.slice().reverse().slice(-12).map(item=>({date:String(item.date).slice(5),score:Number(item.score||0)}))}>
+            <CartesianGrid vertical={false} stroke="#ffffff0b"/>
+            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#7f8290'}}/>
+            <YAxis axisLine={false} tickLine={false} tick={{fontSize:10,fill:'#7f8290'}} width={42}/>
+            <Tooltip contentStyle={{background:'#10131b',border:'1px solid #ffffff12',borderRadius:12,fontSize:11}}/>
+            <Bar dataKey="score" fill="#35d6c7" radius={[6,6,0,0]}/>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="mt-4 space-y-2">{exams.slice(0,5).map(item=><div key={item._id} className="flex items-center justify-between rounded-xl border border-white/[.045] bg-white/[.015] px-3 py-2.5 text-xs"><div><p className="font-medium">{item.examName}</p><p className="mt-1 text-[10px] muted">{item.date} · {item.provider||'بدون مؤسسه'}</p></div><div className="text-left"><p className="text-cyan-200">تراز {item.score||0}</p><p className="mt-1 text-[10px] muted">رتبه {item.rank||0}</p></div></div>)}</div></>:<EmptyState text="هنوز آزمونی ثبت نشده است."/>}
+    </div>
+  </section>;
+}
+
 function ReportSection({report,title}:{report:CounselingReport|null;title:string}){
   if(!report)return <section className="mt-4 card p-5"><EmptyState text="گزارشی برای این بازه آماده نیست."/></section>;
   return <section className="mt-4 space-y-4" dir="rtl">
@@ -655,8 +762,10 @@ function gradeLabel(grade:StudentGrade){return grade==='10'?'دهم':grade==='11
 function activityLabel(meta:CounselingMeta,value:StudyActivityType){return meta.activityTypes.find(item=>item.value===value)?.label||value}
 function minutesLabel(minutes:number){const h=Math.floor(minutes/60);const m=minutes%60;return h?m?`${h}س ${m}د`:`${h} ساعت`:`${m} دقیقه`}
 
+function todayDateClient(){return new Date().toISOString().slice(0,10)}
+
 function currentSaturday(){
-  return toSaturdayClient(new Date().toISOString().slice(0,10));
+  return toSaturdayClient(todayDateClient());
 }
 
 function toSaturdayClient(value:string){
