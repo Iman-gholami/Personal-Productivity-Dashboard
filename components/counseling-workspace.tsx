@@ -555,6 +555,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
 }
 
 function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:CounselingMeta}){
+  const todayIndex=(new Date().getDay()+1)%7;
   const [plans,setPlans]=useState<WeeklyPlan[]>([]);
   const [plan,setPlan]=useState<WeeklyPlan|null>(null);
   const [tasks,setTasks]=useState<StudyTask[]>([]);
@@ -562,6 +563,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
   const [feedback,setFeedback]=useState<CounselingFeedback[]>([]);
   const [exams,setExams]=useState<any[]>([]);
   const [reportPeriod,setReportPeriod]=useState<CounselingReportPeriod>('week');
+  const [selectedDay,setSelectedDay]=useState(todayIndex);
   const [error,setError]=useState<string|null>(null);
   const weekStart=currentSaturday();
 
@@ -585,89 +587,163 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
 
   useEffect(()=>{void load()},[load]);
 
-  const todayIndex=(new Date().getDay()+1)%7;
-  const todayTasks=tasks.filter(task=>task.dayIndex===todayIndex);
+  useEffect(()=>{
+    if(!tasks.length)return;
+    const selectedHasTasks=tasks.some(task=>task.dayIndex===selectedDay);
+    if(selectedHasTasks)return;
+    const todayHasTasks=tasks.some(task=>task.dayIndex===todayIndex);
+    if(todayHasTasks)setSelectedDay(todayIndex);
+    else setSelectedDay(tasks[0].dayIndex);
+  },[tasks,selectedDay,todayIndex]);
+
   const weeklyDone=tasks.filter(task=>task.submission?.status==='done').length;
   const weeklyPartial=tasks.filter(task=>task.submission?.status==='partial').length;
   const weeklyInProgress=tasks.filter(task=>task.submission?.status==='in-progress').length;
   const weeklySkipped=tasks.filter(task=>task.submission?.status==='skipped').length;
   const weeklyRemaining=Math.max(0,tasks.length-weeklyDone-weeklyPartial-weeklyInProgress-weeklySkipped);
   const weeklyProgress=tasks.length?Math.round((weeklyDone/tasks.length)*100):0;
+  const selectedTasks=tasks.filter(task=>task.dayIndex===selectedDay);
+  const selectedDone=selectedTasks.filter(task=>task.submission?.status==='done').length;
+  const selectedProgress=selectedTasks.length?Math.round((selectedDone/selectedTasks.length)*100):0;
+  const nextTask=selectedTasks.find(task=>task.submission?.status!=='done'&&task.submission?.status!=='skipped')||null;
+  const studentName=me.student?.displayName||me.username;
 
-  return <CounselingShell title="پنل دانش‌آموز" subtitle="اول برنامه‌ات را ببین، بعد از انجام هر تسک نتیجه واقعی را ثبت کن." badge={'دانش‌آموز · '+(me.student?.displayName||me.username)}>
-    <div dir="rtl">
+  return <CounselingShell title="پنل دانش‌آموز" subtitle="برنامه امروزت را ببین، انجامش بده و نتیجه واقعی را ثبت کن." badge={'دانش‌آموز · '+studentName}>
+    <div dir="rtl" className="student-dashboard">
       {error&&<InlineError message={error}/>}
-      <section className="student-week-summary">
-        <div className="student-week-summary-main">
+
+      <section className="student-hero">
+        <div className="student-hero-copy">
+          <span className="student-hero-eyebrow">{selectedDay===todayIndex?'برنامه امروز':'برنامه '+dayLabels[selectedDay]}</span>
+          <h2>{studentName}، روی همین چند کار تمرکز کن.</h2>
+          <p>{nextTask
+            ?`قدم بعدی: ${nextTask.subject} · ${nextTask.chapter} — ${nextTask.plannedMinutes} دقیقه`
+            :selectedTasks.length
+              ?'همه تسک‌های این روز تعیین تکلیف شده‌اند. کارت خوب پیش رفته.'
+              :'برای این روز تسکی ثبت نشده است.'}</p>
+          <div className="student-hero-actions">
+            <button type="button" onClick={()=>document.getElementById('student-day-workspace')?.scrollIntoView({behavior:'smooth',block:'start'})} className="student-primary-action">
+              <ClipboardCheck size={16}/>
+              {nextTask?'رفتن به تسک بعدی':'دیدن برنامه'}
+            </button>
+            <button type="button" onClick={()=>document.getElementById('student-report')?.scrollIntoView({behavior:'smooth',block:'start'})} className="student-secondary-action">
+              <BarChart3 size={16}/>گزارش عملکرد
+            </button>
+          </div>
+        </div>
+
+        <div className="student-hero-progress">
+          <div className="student-progress-ring student-progress-ring-lg" style={{'--progress':weeklyProgress} as React.CSSProperties}>
+            <div><strong>{weeklyProgress}%</strong><span>هفته</span></div>
+          </div>
+          <div className="student-hero-progress-copy">
+            <strong>{weeklyDone} از {tasks.length}</strong>
+            <span>تسک کامل شده</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="student-stat-strip">
+        <div><span className="student-stat-icon student-stat-icon-emerald"><CheckCircle2 size={16}/></span><div><strong>{weeklyDone}</strong><small>انجام‌شده</small></div></div>
+        <div><span className="student-stat-icon student-stat-icon-violet"><RefreshCw size={16}/></span><div><strong>{weeklyInProgress}</strong><small>در حال انجام</small></div></div>
+        <div><span className="student-stat-icon student-stat-icon-amber"><Target size={16}/></span><div><strong>{weeklyPartial}</strong><small>نیمه‌کاره</small></div></div>
+        <div><span className="student-stat-icon student-stat-icon-cyan"><BookOpen size={16}/></span><div><strong>{minutesLabel(report?.metrics.actualMinutes??0)}</strong><small>مطالعه ثبت‌شده</small></div></div>
+      </section>
+
+      <section className="student-week-picker" id="student-week">
+        <div className="student-week-picker-head">
           <div>
-            <p className="text-[11px] font-semibold text-emerald-300">وضعیت این هفته</p>
-            <h2 className="mt-1 text-xl font-semibold">{tasks.length} تسک در برنامه</h2>
-            <p className="mt-1 text-xs muted">{weeklyDone} انجام‌شده · {weeklyRemaining} باقی‌مانده</p>
+            <span>هفته جاری</span>
+            <strong>{plan?plan.weekStart+' تا '+plan.weekEnd:'هنوز برنامه‌ای منتشر نشده'}</strong>
           </div>
-          <div className="student-progress-ring" style={{'--progress':weeklyProgress} as React.CSSProperties}>
-            <strong>{weeklyProgress}%</strong>
+          {plans.length>1&&<select
+            className="student-week-select"
+            value={plan?._id||''}
+            onChange={async e=>{
+              const next=plans.find(item=>item._id===e.target.value)||null;
+              setPlan(next);
+              setTasks(next?await counselingApi.listPlanTasks(token,next._id):[]);
+            }}
+          >{plans.slice(0,8).map(item=><option key={item._id} value={item._id}>{item.weekStart}</option>)}</select>}
+        </div>
+
+        <div className="student-day-tabs" role="tablist" aria-label="روزهای هفته">
+          {dayLabels.map((day,index)=>{
+            const dayTasks=tasks.filter(task=>task.dayIndex===index);
+            const done=dayTasks.filter(task=>task.submission?.status==='done').length;
+            const complete=dayTasks.length>0&&done===dayTasks.length;
+            return <button
+              key={day}
+              type="button"
+              onClick={()=>setSelectedDay(index)}
+              className={`student-day-tab ${selectedDay===index?'student-day-tab-active':''} ${complete?'student-day-tab-complete':''}`}
+            >
+              <span>{day}</span>
+              <small>{dayTasks.length?done+'/'+dayTasks.length:'—'}</small>
+            </button>;
+          })}
+        </div>
+      </section>
+
+      <section id="student-day-workspace" className="student-day-workspace scroll-mt-24">
+        <header className="student-day-workspace-head">
+          <div>
+            <span className="student-day-kicker">{selectedDay===todayIndex?'امروز · ':''}{dayLabels[selectedDay]}</span>
+            <h2>{selectedTasks.length?selectedTasks.length+' تسک برای این روز':'برنامه این روز خالی است'}</h2>
+            <p>{selectedTasks.length
+              ?selectedDone+' انجام‌شده · '+Math.max(0,selectedTasks.length-selectedDone)+' باقی‌مانده'
+              :'اگر مشاور برای این روز برنامه‌ای ثبت کند، اینجا نمایش داده می‌شود.'}</p>
           </div>
+          <div className="student-day-score">
+            <strong>{selectedProgress}%</strong>
+            <span>پیشرفت روز</span>
+          </div>
+        </header>
+
+        <div className="student-day-progress-track"><span style={{width:selectedProgress+'%'}}/></div>
+
+        {selectedTasks.length
+          ?<div className="student-task-list">{selectedTasks.map((task,index)=><div key={task._id} className="student-task-row-wrap">
+            <span className="student-task-index">{String(index+1).padStart(2,'0')}</span>
+            <StudentTaskCard token={token} task={task} meta={meta} onSaved={load}/>
+          </div>)}</div>
+          :<div className="student-empty-day"><CalendarRange size={24}/><strong>برای {dayLabels[selectedDay]} تسکی نداری</strong><span>می‌تونی روز دیگری را از بالا انتخاب کنی.</span></div>}
+      </section>
+
+      <section className="student-insight-grid">
+        <div className="student-insight-card">
+          <span>اجرای کل برنامه</span>
+          <strong>{report?.metrics.completionRate??0}%</strong>
+          <small>{weeklyRemaining} تسک هنوز باقی مانده</small>
         </div>
-        <div className="student-week-status-grid">
-          <div><strong>{weeklyDone}</strong><span>انجام‌شده</span></div>
-          <div><strong>{weeklyInProgress}</strong><span>در حال انجام</span></div>
-          <div><strong>{weeklyPartial}</strong><span>نیمه‌کاره</span></div>
-          <div><strong>{weeklySkipped}</strong><span>انجام‌نشده</span></div>
+        <div className="student-insight-card">
+          <span>تست‌های ثبت‌شده</span>
+          <strong>{report?.metrics.attemptedTests??0}</strong>
+          <small>دقت پاسخ‌ها {report?.metrics.accuracy??0}%</small>
         </div>
-        <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/[.06]">
-          <div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-all duration-500" style={{width:weeklyProgress+'%'}}/>
+        <div className="student-insight-card">
+          <span>وضعیت‌های خاص</span>
+          <strong>{weeklyPartial+weeklySkipped}</strong>
+          <small>{weeklyPartial} نیمه‌کاره · {weeklySkipped} انجام‌نشده</small>
         </div>
       </section>
 
-      <section className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MiniMetric label="اجرای برنامه" value={(report?.metrics.completionRate??0)+'%'}/>
-        <MiniMetric label="مطالعه این هفته" value={minutesLabel(report?.metrics.actualMinutes??0)}/>
-        <MiniMetric label="تست ثبت‌شده" value={report?.metrics.attemptedTests??0}/>
-        <MiniMetric label="دقت تست" value={(report?.metrics.accuracy??0)+'%'}/>
-      </section>
-
-      <DisclosureBox id="student-week" title="برنامه من" subtitle="برنامه منتشرشده توسط مشاور را اینجا ببین." defaultOpen accent="emerald">
-      <section className="p-1 md:p-2">
-        <div className="flex items-start justify-between gap-4">
-          <div><p className="section-kicker">این هفته</p><h2 className="panel-heading">برنامه هفته</h2><p className="panel-subtitle">{plan?plan.weekStart+' تا '+plan.weekEnd:'برنامه منتشرشده‌ای برای این هفته وجود ندارد.'}</p></div>
-          <span className="icon-shell text-cyan-300"><CalendarRange size={17}/></span>
-        </div>
-        {plans.length>1&&<div className="mt-4 flex flex-wrap gap-2">{plans.slice(0,8).map(item=><button key={item._id} onClick={async()=>{setPlan(item);setTasks(await counselingApi.listPlanTasks(token,item._id))}} className={`rounded-xl border px-3 py-2 text-xs ${plan?._id===item._id?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] muted'}`}>{item.weekStart}</button>)}</div>}
-      </section>
-      </DisclosureBox>
-
-      <DisclosureBox id="student-tasks" title="ثبت گزارش کار" subtitle="بعد از انجام هر تسک، نتیجه واقعی را همین‌جا ثبت کن." defaultOpen accent="violet">
-      <section className="grid gap-4">
-        {plan&&dayLabels.map((day,index)=>{
-          const items=tasks.filter(task=>task.dayIndex===index);
-          if(!items.length)return null;
-          const dayDone=items.filter(task=>task.submission?.status==='done').length;
-          return <div key={day} className="card overflow-hidden">
-            <div className="flex items-center justify-between border-b border-white/[.055] p-5 md:px-6">
-              <div><p className="section-kicker">{day}</p><h2 className="panel-heading">{dayDone} از {items.length} انجام شده</h2></div>
-              <div className="flex items-center gap-2"><span className="pill text-[10px] text-emerald-200">{Math.round((dayDone/items.length)*100)}%</span><ClipboardCheck size={17} className={dayDone===items.length?'text-emerald-300':'text-violet-300'}/></div>
-            </div>
-            <div className="grid gap-3 p-4 lg:grid-cols-2 md:p-5">{items.map(task=><StudentTaskCard key={task._id} token={token} task={task} meta={meta} onSaved={load}/>)}</div>
-          </div>;
-        })}
-        {!plan&&<div className="card p-6"><EmptyState text="مشاور هنوز برنامه‌ای منتشر نکرده است."/></div>}
-      </section>
-      </DisclosureBox>
-
-      <DisclosureBox id="student-report" title="تحلیل عملکرد" subtitle="گزارش روزانه، هفتگی و ماهانه خودت را ببین." accent="cyan">
+      <DisclosureBox id="student-report" title="تحلیل عملکرد" subtitle="وقتی خواستی روند روزانه، هفتگی یا ماهانه‌ات را بررسی کنی." accent="cyan">
         <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
         <ReportSection report={report} title="تحلیل عملکرد من"/>
       </DisclosureBox>
 
-      <DisclosureBox id="student-exams" title="آزمون‌های آزمایشی" subtitle="نتیجه آزمون‌ها را ثبت کن و روند تراز و رتبه را ببین." accent="violet">
+      <DisclosureBox id="student-exams" title="آزمون‌های آزمایشی" subtitle="نتیجه آزمون را ثبت کن و روند تراز و رتبه را ببین." accent="violet">
         <MockExamSection token={token} meta={meta} track={me.student?.track||'experimental'} exams={exams} onSaved={load}/>
       </DisclosureBox>
 
-      <DisclosureBox id="student-feedback" title="بازخورد مشاور" subtitle="پیام‌ها و نکات مشاور برای تو." accent="amber">
-      <section className="overflow-hidden">
-        <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">بازخورد مشاور</p><h2 className="panel-heading">بازخورد مشاور</h2></div>
-        {feedback.length?<div className="divide-y divide-white/[.04]">{feedback.slice(0,10).map(item=><div key={item._id} className="p-5 md:px-6"><div className="flex items-center justify-between text-[10px] muted"><span>{item.targetType==='week'?'بازخورد هفتگی':item.targetType==='day'?'بازخورد روزانه':'بازخورد تسک'}</span><span>{item.createdAt.slice(0,10)}</span></div><p className="mt-2 text-sm leading-7 text-[#c6c8d1]">{item.text}</p></div>)}</div>:<div className="p-5"><EmptyState text="هنوز بازخوردی ثبت نشده است."/></div>}
-      </section>
+      <DisclosureBox id="student-feedback" title="بازخورد مشاور" subtitle={feedback.length?feedback.length+' بازخورد برای تو ثبت شده':'هنوز بازخوردی ثبت نشده'} accent="amber">
+        <section className="student-feedback-list">
+          {feedback.length?feedback.slice(0,10).map(item=><article key={item._id} className="student-feedback-card">
+            <div><span>{item.targetType==='week'?'هفتگی':item.targetType==='day'?'روزانه':'تسک'}</span><time>{item.createdAt.slice(0,10)}</time></div>
+            <p>{item.text}</p>
+          </article>):<EmptyState text="هنوز بازخوردی ثبت نشده است."/>}
+        </section>
       </DisclosureBox>
     </div>
   </CounselingShell>;
