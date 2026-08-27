@@ -1,7 +1,19 @@
 'use client';
 import {FormEvent,useCallback,useEffect,useState} from 'react';
 import {Command} from 'lucide-react';
-import {api,ApiError,ApiLearningItem,ApiProject,ApiReview,ApiTask,TaskPriority} from '@/lib/api';
+import {
+  api,
+  ApiError,
+  ApiLearningItem,
+  ApiProject,
+  ApiReport,
+  ApiReview,
+  ApiTask,
+  ReportPeriod,
+  TaskCategory,
+  TaskPriority,
+  TaskStatus,
+} from '@/lib/api';
 import {Sidebar,WorkspaceView} from './sidebar';
 import {Dashboard,nextStatus} from './dashboard';
 import {WorkspaceViews} from './workspace-views';
@@ -18,6 +30,8 @@ export function LifeOSApp(){
   const [projects,setProjects]=useState<ApiProject[]>([]);
   const [learning,setLearning]=useState<ApiLearningItem[]>([]);
   const [reviews,setReviews]=useState<ApiReview[]>([]);
+  const [report,setReport]=useState<ApiReport|null>(null);
+  const [reportPeriod,setReportPeriod]=useState<ReportPeriod>('week');
   const [loading,setLoading]=useState(false);
   const [error,setError]=useState<string|null>(null);
 
@@ -35,24 +49,28 @@ export function LifeOSApp(){
     setProjects([]);
     setLearning([]);
     setReviews([]);
+    setReport(null);
     setActiveView('overview');
     setError(null);
   },[]);
 
-  const load=useCallback(async(currentToken:string)=>{
+  const load=useCallback(async(currentToken:string,period:ReportPeriod='week')=>{
     setLoading(true);
     setError(null);
     try{
-      const [nextTasks,nextProjects,nextLearning,nextReviews]=await Promise.all([
+      const [nextTasks,nextProjects,nextLearning,nextReviews,nextReport]=await Promise.all([
         api.listTasks(currentToken),
         api.listProjects(currentToken),
         api.listLearning(currentToken),
         api.listReviews(currentToken),
+        api.getReport(currentToken,period),
       ]);
       setTasks(nextTasks);
       setProjects(nextProjects);
       setLearning(nextLearning);
       setReviews(nextReviews);
+      setReport(nextReport);
+      setReportPeriod(period);
     }catch(err){
       if(err instanceof ApiError&&err.status===401){
         logout();
@@ -64,7 +82,7 @@ export function LifeOSApp(){
     }
   },[logout]);
 
-  useEffect(()=>{if(token)void load(token)},[token,load]);
+  useEffect(()=>{if(token)void load(token,'week')},[token,load]);
 
   function saveSession(nextToken:string,nextUsername:string){
     localStorage.setItem(TOKEN_KEY,nextToken);
@@ -76,12 +94,20 @@ export function LifeOSApp(){
   if(!ready) return null;
   if(!token) return <AuthScreen onAuthenticated={saveSession}/>;
 
-  async function createTask(input:{title:string;description?:string;priority:TaskPriority}){
+  async function createTask(input:{
+    title:string;
+    description?:string;
+    priority:TaskPriority;
+    category:TaskCategory;
+    projectId?:string;
+    status?:TaskStatus;
+  }){
     if(!token)return;
     try{
       const created=await api.createTask(token,input);
       setTasks(current=>[created,...current]);
       setError(null);
+      if(created.status==='done') await refreshReport();
     }catch(err){
       setError(err instanceof Error?err.message:'Unable to create task');
       throw err;
@@ -94,8 +120,55 @@ export function LifeOSApp(){
       const updated=await api.updateTask(token,task._id,{status:nextStatus[task.status]});
       setTasks(current=>current.map(item=>item._id===updated._id?updated:item));
       setError(null);
+      await refreshReport();
     }catch(err){
       setError(err instanceof Error?err.message:'Unable to update task');
+    }
+  }
+
+  async function createProject(input:{name:string;description?:string}){
+    if(!token)return;
+    try{
+      const created=await api.createProject(token,input);
+      setProjects(current=>[created,...current]);
+      setError(null);
+    }catch(err){
+      setError(err instanceof Error?err.message:'Unable to create project');
+      throw err;
+    }
+  }
+
+  async function createLearningItem(input:{
+    title:string;
+    type:'course'|'book';
+    description?:string;
+    totalHours?:number;
+    totalPages?:number;
+  }){
+    if(!token)return;
+    try{
+      const created=await api.createLearningItem(token,input);
+      setLearning(current=>[created,...current]);
+      setError(null);
+    }catch(err){
+      setError(err instanceof Error?err.message:'Unable to create learning goal');
+      throw err;
+    }
+  }
+
+  async function logLearningSession(
+    item:ApiLearningItem,
+    input:{durationHours?:number;pagesRead?:number;note?:string},
+  ){
+    if(!token)return;
+    try{
+      const result=await api.logLearningSession(token,item._id,input);
+      setLearning(current=>current.map(existing=>existing._id===result.item._id?result.item:existing));
+      setError(null);
+      await refreshReport();
+    }catch(err){
+      setError(err instanceof Error?err.message:'Unable to log learning session');
+      throw err;
     }
   }
 
@@ -108,6 +181,17 @@ export function LifeOSApp(){
     }catch(err){
       setError(err instanceof Error?err.message:'Unable to save daily review');
       throw err;
+    }
+  }
+
+  async function refreshReport(period:ReportPeriod=reportPeriod){
+    if(!token)return;
+    try{
+      const next=await api.getReport(token,period);
+      setReport(next);
+      setReportPeriod(period);
+    }catch(err){
+      setError(err instanceof Error?err.message:'Unable to load reports');
     }
   }
 
@@ -126,7 +210,7 @@ export function LifeOSApp(){
           learning={learning}
           loading={loading}
           error={error}
-          onCreateTask={createTask}
+          onCreateTask={input=>createTask({...input,category:'Other'})}
           onAdvanceTask={advanceTask}
           onLogout={logout}
         />
@@ -137,7 +221,15 @@ export function LifeOSApp(){
           projects={projects}
           learning={learning}
           reviews={reviews}
+          report={report}
+          reportPeriod={reportPeriod}
           error={error}
+          onCreateTask={createTask}
+          onAdvanceTask={advanceTask}
+          onCreateProject={createProject}
+          onCreateLearningItem={createLearningItem}
+          onLogLearningSession={logLearningSession}
+          onReportPeriodChange={refreshReport}
           onCreateReview={createReview}
           onLogout={logout}
         />
