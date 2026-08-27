@@ -708,14 +708,32 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
     finally{setSaving(false)}
   }
 
-  return <form onSubmit={save} className="rounded-[17px] border border-white/[.065] bg-white/[.018] p-4">
+  const visualStatus=status||existing?.status||'not-started';
+  const visualClass=visualStatus==='done'
+    ?'student-task-card student-task-done'
+    :visualStatus==='partial'
+      ?'student-task-card student-task-partial'
+      :visualStatus==='in-progress'
+        ?'student-task-card student-task-progress'
+        :visualStatus==='skipped'
+          ?'student-task-card student-task-skipped'
+          :'student-task-card';
+
+  return <form onSubmit={save} className={visualClass}>
     <div className="flex items-start justify-between gap-3">
-      <div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{task.subject} · {task.chapter}</p><span className="pill text-[9px] text-violet-200">{activityLabel(meta,task.activityType)}</span></div><p className="mt-2 text-[11px] muted">{task.book||'—'}{task.topic?' · '+task.topic:''}</p></div>
-      <CheckCircle2 size={17} className={existing?.status==='done'?'text-emerald-300':'text-[#5f6370]'}/>
+      <div>
+        <div className="flex flex-wrap items-center gap-2">
+          <p className={`text-sm font-medium ${visualStatus==='done'?'line-through opacity-70':''}`}>{task.subject} · {task.chapter}</p>
+          <span className="pill text-[9px] text-violet-200">{activityLabel(meta,task.activityType)}</span>
+          <span className={`student-task-status student-task-status-${visualStatus}`}>{statusLabels[visualStatus]}</span>
+        </div>
+        <p className="mt-2 text-[11px] muted">{task.book||'—'}{task.topic?' · '+task.topic:''}</p>
+      </div>
+      <span className={`student-task-check ${visualStatus==='done'?'student-task-check-done':''}`}><CheckCircle2 size={17}/></span>
     </div>
     <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-[#9699a6]"><span className="pill">{task.plannedMinutes} دقیقه</span>{taskUsesTests&&<span className="pill">{task.plannedTests} تست</span>}{taskUsesPages&&<span className="pill">{task.plannedPages} صفحه</span>}</div>
     {task.description&&<p className="mt-3 rounded-xl border border-white/[.04] bg-black/15 p-3 text-xs leading-6 text-[#b8bac4]">{task.description}</p>}
-    {existing&&<div className="mt-3 flex items-center justify-between rounded-xl border border-white/[.05] bg-white/[.02] px-3 py-2 text-[11px]"><span className="muted">آخرین وضعیت ثبت‌شده</span><span className="font-medium">{statusLabels[existing.status]}</span></div>}
+    {existing&&<div className="mt-3 flex items-center justify-between rounded-xl border border-white/[.05] bg-white/[.02] px-3 py-2 text-[11px]"><span className="muted">آخرین گزارش ثبت‌شده</span><span className="font-medium">{statusLabels[existing.status]}</span></div>}
     <button type="button" onClick={()=>setOpen(value=>!value)} className="btn-secondary mt-3 w-full">{open?'بستن فرم گزارش':existing?'ویرایش گزارش':'ثبت گزارش این تسک'}</button>
 
     {open&&<div className="mt-3 rounded-[14px] border border-white/[.05] bg-black/10 p-3">
