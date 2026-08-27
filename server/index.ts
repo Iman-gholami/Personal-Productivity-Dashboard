@@ -346,7 +346,10 @@ app.get('/api/health',(_req,res)=>res.json({status:'ok'}));
 
 app.use((err:any,_req:any,res:any,_next:any)=>{
   console.error(err);
-  if(err instanceof z.ZodError) return res.status(400).json({error:'Validation failed',details:err.flatten()});
+  if(err instanceof z.ZodError){
+    const firstIssue=err.issues?.[0]?.message;
+    return res.status(400).json({error:firstIssue||'اطلاعات واردشده معتبر نیست',details:err.flatten()});
+  }
   if(err?.code===11000) return res.status(409).json({error:'Already exists'});
   if(err instanceof mongoose.Error.CastError) return res.status(400).json({error:'Invalid id'});
   res.status(500).json({error:'Something went wrong'});
