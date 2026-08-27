@@ -21,7 +21,7 @@ const roleItems:Record<CounselingRole,{id:string;label:string;icon:any}[]>={
   ],
   student:[
     {id:'student-week',label:'برنامه من',icon:BookOpenCheck},
-    {id:'student-tasks',label:'ثبت گزارش',icon:ClipboardCheck},
+    {id:'student-day-workspace',label:'کارهای روز',icon:ClipboardCheck},
     {id:'student-report',label:'تحلیل عملکرد',icon:BarChart3},
     {id:'student-exams',label:'آزمون‌ها',icon:GraduationCap},
     {id:'student-feedback',label:'بازخورد مشاور',icon:MessageSquare},
@@ -60,7 +60,7 @@ export function CounselingSidebar({
 
     <aside className={`theme-sidebar ${open?'translate-x-0':'-translate-x-full'} fixed inset-y-0 left-0 z-50 flex w-[252px] flex-col border-r border-white/[.065] bg-[#080a0f]/92 p-4 backdrop-blur-2xl transition duration-300 md:translate-x-0`}>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-36 bg-gradient-to-b from-violet-500/[.07] to-transparent"/>
-      <div className="relative mb-7 flex items-center gap-3 rounded-[18px] border border-white/[.055] bg-white/[.025] px-3 py-3">
+      <div className="counseling-brand-card relative mb-7 flex items-center gap-3 rounded-[18px] border border-white/[.055] bg-white/[.025] px-3 py-3">
         <div className="grid h-10 w-10 place-items-center rounded-[13px] bg-gradient-to-br from-violet-400 via-violet-600 to-cyan-500 text-white">
           <GraduationCap size={19}/>
         </div>
@@ -78,7 +78,7 @@ export function CounselingSidebar({
             key={id}
             type="button"
             onClick={()=>go(id)}
-            className="group flex w-full items-center gap-3 rounded-[14px] border border-transparent px-3 py-2.5 text-right text-sm text-[#858997] transition hover:border-white/[.05] hover:bg-white/[.03] hover:text-white"
+            className="counseling-nav-item group flex w-full items-center gap-3 rounded-[14px] border border-transparent px-3 py-2.5 text-right text-sm text-[#858997] transition hover:border-white/[.05] hover:bg-white/[.03] hover:text-white"
           >
             <span className="grid h-7 w-7 place-items-center rounded-[9px] bg-white/[.025]"><Icon size={15}/></span>
             <span>{label}</span>
@@ -88,9 +88,9 @@ export function CounselingSidebar({
 
       <div className="relative mt-auto space-y-2 pt-6">
         <ThemeToggle/>
-        <div className="rounded-[14px] border border-white/[.055] bg-white/[.02] px-3 py-3">
-          <p className="truncate text-xs font-medium">{username}</p>
-          <p className="mt-1 text-[10px] muted">{roleLabels[role]}</p>
+        <div className="counseling-user-card rounded-[14px] border border-white/[.055] bg-white/[.02] px-3 py-3">
+          <div className="flex items-center gap-2"><span className="status-dot"/><p className="truncate text-xs font-medium">{username}</p></div>
+          <p className="mt-1 pr-3.5 text-[10px] muted">{roleLabels[role]}</p>
         </div>
         <button type="button" onClick={onLogout} className="btn-secondary w-full"><LogOut size={15}/>خروج از حساب</button>
       </div>
