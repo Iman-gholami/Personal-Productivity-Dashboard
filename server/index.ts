@@ -7,6 +7,7 @@ import jwt from 'jsonwebtoken';
 import {z} from 'zod';
 import {auth,AuthRequest} from './auth';
 import {Category,DailyReview,LearningItem,LearningSession,Project,Task,User} from './models';
+import {registerCounselingRoutes} from './counseling';
 
 if(!process.env.JWT_SECRET) throw new Error('JWT_SECRET is required');
 
@@ -338,6 +339,8 @@ app.get('/api/reports',auth,async(req:AuthRequest,res,next)=>{
     });
   }catch(error){next(error)}
 });
+
+registerCounselingRoutes(app);
 
 app.get('/api/health',(_req,res)=>res.json({status:'ok'}));
 
