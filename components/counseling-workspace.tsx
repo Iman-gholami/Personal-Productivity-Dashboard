@@ -603,6 +603,8 @@ function ReportPeriodControls({value,onChange}:{value:CounselingReportPeriod;onC
   </div>;
 }
 
+type ExamSubjectRow={subject:string;correct:number;wrong:number;unanswered:number;percentage:number};
+
 function MockExamSection({
   token,meta,track,exams,onSaved,
 }:{
@@ -613,12 +615,12 @@ function MockExamSection({
   onSaved:()=>Promise<void>;
 }){
   const subjects=meta.subjects[track]||meta.subjects.experimental;
-  const [rows,setRows]=useState([{subject:subjects[0]||'',correct:0,wrong:0,unanswered:0,percentage:0}]);
+  const [rows,setRows]=useState<ExamSubjectRow[]>([{subject:subjects[0]||'',correct:0,wrong:0,unanswered:0,percentage:0}]);
   const [saving,setSaving]=useState(false);
   const [error,setError]=useState<string|null>(null);
 
-  function updateRow(index:number,key:string,value:string|number){
-    setRows(current=>current.map((row,rowIndex)=>rowIndex===index?{...row,[key]:typeof value==='string'&&key!=='subject'?Number(value):value}:row));
+  function updateRow(index:number,patch:Partial<ExamSubjectRow>){
+    setRows(current=>current.map((row,rowIndex)=>rowIndex===index?{...row,...patch}:row));
   }
 
   async function submit(e:FormEvent<HTMLFormElement>){
@@ -666,12 +668,12 @@ function MockExamSection({
       <div className="mt-4 space-y-3">
         <div className="flex items-center justify-between"><p className="text-xs font-medium">نتیجه درس‌ها</p><button type="button" onClick={()=>setRows(current=>[...current,{subject:subjects[0]||'',correct:0,wrong:0,unanswered:0,percentage:0}])} className="btn-secondary px-3 py-2 text-xs"><Plus size={13}/>درس</button></div>
         {rows.map((row,index)=><div key={index} className="grid gap-2 rounded-[14px] border border-white/[.05] bg-white/[.018] p-3 sm:grid-cols-5">
-          <select className="input sm:col-span-2" value={row.subject} onChange={e=>updateRow(index,'subject',e.target.value)}>{subjects.map(subject=><option key={subject}>{subject}</option>)}</select>
-          <input className="input" type="number" min="0" placeholder="صحیح" value={row.correct} onChange={e=>updateRow(index,'correct',e.target.value)}/>
-          <input className="input" type="number" min="0" placeholder="غلط" value={row.wrong} onChange={e=>updateRow(index,'wrong',e.target.value)}/>
+          <select className="input sm:col-span-2" value={row.subject} onChange={e=>updateRow(index,{subject:e.target.value})}>{subjects.map(subject=><option key={subject}>{subject}</option>)}</select>
+          <input className="input" type="number" min="0" placeholder="صحیح" value={row.correct} onChange={e=>updateRow(index,{correct:Number(e.target.value)})}/>
+          <input className="input" type="number" min="0" placeholder="غلط" value={row.wrong} onChange={e=>updateRow(index,{wrong:Number(e.target.value)})}/>
           <div className="flex gap-2 sm:col-span-5">
-            <input className="input" type="number" min="0" placeholder="نزده" value={row.unanswered} onChange={e=>updateRow(index,'unanswered',e.target.value)}/>
-            <input className="input" type="number" min="-100" max="100" step="0.01" placeholder="درصد" value={row.percentage} onChange={e=>updateRow(index,'percentage',e.target.value)}/>
+            <input className="input" type="number" min="0" placeholder="نزده" value={row.unanswered} onChange={e=>updateRow(index,{unanswered:Number(e.target.value)})}/>
+            <input className="input" type="number" min="-100" max="100" step="0.01" placeholder="درصد" value={row.percentage} onChange={e=>updateRow(index,{percentage:Number(e.target.value)})}/>
             {rows.length>1&&<button type="button" onClick={()=>setRows(current=>current.filter((_,rowIndex)=>rowIndex!==index))} className="grid w-11 shrink-0 place-items-center rounded-xl border border-rose-400/10 text-rose-300"><Trash2 size={14}/></button>}
           </div>
         </div>)}
