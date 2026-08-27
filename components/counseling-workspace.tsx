@@ -393,14 +393,8 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   return <CounselingShell title="پنل مشاور" subtitle="دانش‌آموز را انتخاب کن، برنامه هفته را بساز و بعد گزارش عملکردش را بررسی کن." badge={'مشاور · '+me.username}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
-      <CounselingQuickNav items={[
-        {id:'counseling-students',label:'دانش‌آموزها'},
-        {id:'counseling-plan',label:'برنامه هفته'},
-        {id:'counseling-report',label:'گزارش'},
-        {id:'counseling-feedback',label:'بازخورد'},
-      ]}/>
-      <CounselorStartGuide hasStudent={Boolean(selectedStudent)} hasPlan={Boolean(selectedPlan)} published={selectedPlan?.status==='published'}/>
-      <section id="counseling-students" className="grid scroll-mt-24 gap-4 xl:grid-cols-[1fr_1.5fr]">
+      <DisclosureBox id="counseling-students" title="دانش‌آموزها" subtitle="دانش‌آموز را انتخاب کن یا یک دانش‌آموز جدید بساز." defaultOpen accent="emerald">
+        <section className="grid gap-4 xl:grid-cols-[1fr_1.5fr]">
         <div className="flex items-center justify-between xl:col-span-2">
           <div><h2 className="text-base font-semibold">دانش‌آموزها</h2><p className="mt-1 text-xs muted">اول دانش‌آموز موردنظر را انتخاب کن.</p></div>
           <button type="button" onClick={()=>setShowStudentForm(value=>!value)} className="btn-secondary"><UserPlus size={15}/>{showStudentForm?'بستن فرم':'دانش‌آموز جدید'}</button>
@@ -446,10 +440,12 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             <button type="button" onClick={()=>void removeStudent(student)} disabled={busy} className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 transition hover:bg-rose-500/[.08] hover:text-rose-200" title="حذف دانش‌آموز"><Trash2 size={14}/></button>
           </div>)}</div>:<EmptyState text="هنوز دانش‌آموزی ایجاد نشده است."/>}
         </div>
-      </section>
+        </section>
+      </DisclosureBox>
 
       {selectedStudent&&<>
-        <section id="counseling-plan" className="mt-4 scroll-mt-24 card p-5 md:p-6">
+        <DisclosureBox id="counseling-plan" title={`برنامه هفتگی ${selectedStudent.displayName}`} subtitle="برنامه هفته را بساز، تسک‌ها را اضافه کن و در پایان منتشر کن." defaultOpen accent="violet">
+        <section className="rounded-[16px] border border-white/[.055] bg-white/[.018] p-5 md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div><p className="section-kicker">برنامه هفتگی</p><h2 className="panel-heading">برنامه هفتگی {selectedStudent.displayName}</h2><p className="panel-subtitle">هر هفته از شنبه شروع می‌شود و برنامه می‌تواند قبل یا بعد از انتشار اصلاح شود.</p></div>
             <div className="flex flex-wrap items-center gap-2">
@@ -515,13 +511,15 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             })}</div>:<div className="p-6"><EmptyState text="هنوز تسکی برای این برنامه ثبت نشده است."/></div>}
           </div>
         </section>}
+        </DisclosureBox>
 
-        <div id="counseling-report" className="scroll-mt-24">
+        <DisclosureBox id="counseling-report" title="گزارش عملکرد" subtitle="روند روزانه، هفتگی و ماهانه دانش‌آموز را بررسی کن." accent="cyan">
           <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
           <ReportSection report={report} title="تحلیل عملکرد دانش‌آموز"/>
-        </div>
+        </DisclosureBox>
 
-        <section id="counseling-feedback" className="mt-4 grid scroll-mt-24 gap-4 xl:grid-cols-[1fr_1.4fr]">
+        <DisclosureBox id="counseling-feedback" title="بازخورد مشاور" subtitle="برای تسک، روز یا هفته بازخورد ثبت کن." accent="amber">
+        <section className="grid gap-4 xl:grid-cols-[1fr_1.4fr]">
           <form onSubmit={submitFeedback} className="card p-5 md:p-6">
             <div className="mb-4"><p className="section-kicker">بازخورد</p><h2 className="panel-heading">ثبت بازخورد مشاور</h2><p className="panel-subtitle">این متن مستقیماً در پنل دانش‌آموز نمایش داده می‌شود.</p></div>
             <div className="grid gap-3">
@@ -541,6 +539,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             {feedback.length?<div className="divide-y divide-white/[.04]">{feedback.slice(0,8).map(item=><div key={item._id} className="p-5"><div className="flex items-center justify-between text-[10px] muted"><span>{item.targetType}</span><span>{item.createdAt.slice(0,10)}</span></div><p className="mt-2 text-sm leading-7 text-[#c5c7d0]">{item.text}</p></div>)}</div>:<div className="p-5"><EmptyState text="بازخوردی ثبت نشده است."/></div>}
           </div>
         </section>
+        </DisclosureBox>
 
         {adminReviews.length>0&&<section className="mt-4 card overflow-hidden">
           <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">بازخورد ادمین</p><h2 className="panel-heading">بازخورد ادمین برای من</h2></div>
@@ -588,14 +587,6 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
   return <CounselingShell title="پنل دانش‌آموز" subtitle="اول برنامه‌ات را ببین، بعد از انجام هر تسک نتیجه واقعی را ثبت کن." badge={'دانش‌آموز · '+(me.student?.displayName||me.username)}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
-      <CounselingQuickNav items={[
-        {id:'student-week',label:'برنامه هفته'},
-        {id:'student-tasks',label:'ثبت گزارش'},
-        {id:'student-report',label:'تحلیل عملکرد'},
-        {id:'student-exams',label:'آزمون‌ها'},
-        {id:'student-feedback',label:'بازخورد مشاور'},
-      ]}/>
-      <StudentStartGuide hasPlan={Boolean(plan)} todayTasks={todayTasks.length}/>
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MiniMetric label="اجرای برنامه" value={(report?.metrics.completionRate??0)+'%'}/>
         <MiniMetric label="مطالعه این هفته" value={minutesLabel(report?.metrics.actualMinutes??0)}/>
@@ -603,15 +594,18 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
         <MiniMetric label="دقت تست" value={(report?.metrics.accuracy??0)+'%'}/>
       </section>
 
-      <section id="student-week" className="mt-4 scroll-mt-24 card p-5 md:p-6">
+      <DisclosureBox id="student-week" title="برنامه من" subtitle="برنامه منتشرشده توسط مشاور را اینجا ببین." defaultOpen accent="emerald">
+      <section className="p-1 md:p-2">
         <div className="flex items-start justify-between gap-4">
           <div><p className="section-kicker">این هفته</p><h2 className="panel-heading">برنامه هفته</h2><p className="panel-subtitle">{plan?plan.weekStart+' تا '+plan.weekEnd:'برنامه منتشرشده‌ای برای این هفته وجود ندارد.'}</p></div>
           <span className="icon-shell text-cyan-300"><CalendarRange size={17}/></span>
         </div>
         {plans.length>1&&<div className="mt-4 flex flex-wrap gap-2">{plans.slice(0,8).map(item=><button key={item._id} onClick={async()=>{setPlan(item);setTasks(await counselingApi.listPlanTasks(token,item._id))}} className={`rounded-xl border px-3 py-2 text-xs ${plan?._id===item._id?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] muted'}`}>{item.weekStart}</button>)}</div>}
       </section>
+      </DisclosureBox>
 
-      <section id="student-tasks" className="mt-4 grid scroll-mt-24 gap-4">
+      <DisclosureBox id="student-tasks" title="ثبت گزارش کار" subtitle="بعد از انجام هر تسک، نتیجه واقعی را همین‌جا ثبت کن." defaultOpen accent="violet">
+      <section className="grid gap-4">
         {plan&&dayLabels.map((day,index)=>{
           const items=tasks.filter(task=>task.dayIndex===index);
           if(!items.length)return null;
@@ -622,20 +616,23 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
         })}
         {!plan&&<div className="card p-6"><EmptyState text="مشاور هنوز برنامه‌ای منتشر نکرده است."/></div>}
       </section>
+      </DisclosureBox>
 
-      <div id="student-report" className="scroll-mt-24">
+      <DisclosureBox id="student-report" title="تحلیل عملکرد" subtitle="گزارش روزانه، هفتگی و ماهانه خودت را ببین." accent="cyan">
         <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
         <ReportSection report={report} title="تحلیل عملکرد من"/>
-      </div>
+      </DisclosureBox>
 
-      <div id="student-exams" className="scroll-mt-24">
+      <DisclosureBox id="student-exams" title="آزمون‌های آزمایشی" subtitle="نتیجه آزمون‌ها را ثبت کن و روند تراز و رتبه را ببین." accent="violet">
         <MockExamSection token={token} meta={meta} track={me.student?.track||'experimental'} exams={exams} onSaved={load}/>
-      </div>
+      </DisclosureBox>
 
-      <section id="student-feedback" className="mt-4 scroll-mt-24 card overflow-hidden">
+      <DisclosureBox id="student-feedback" title="بازخورد مشاور" subtitle="پیام‌ها و نکات مشاور برای تو." accent="amber">
+      <section className="overflow-hidden">
         <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">بازخورد مشاور</p><h2 className="panel-heading">بازخورد مشاور</h2></div>
         {feedback.length?<div className="divide-y divide-white/[.04]">{feedback.slice(0,10).map(item=><div key={item._id} className="p-5 md:px-6"><div className="flex items-center justify-between text-[10px] muted"><span>{item.targetType==='week'?'بازخورد هفتگی':item.targetType==='day'?'بازخورد روزانه':'بازخورد تسک'}</span><span>{item.createdAt.slice(0,10)}</span></div><p className="mt-2 text-sm leading-7 text-[#c6c8d1]">{item.text}</p></div>)}</div>:<div className="p-5"><EmptyState text="هنوز بازخوردی ثبت نشده است."/></div>}
       </section>
+      </DisclosureBox>
     </div>
   </CounselingShell>;
 }
