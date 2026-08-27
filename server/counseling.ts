@@ -294,6 +294,52 @@ export function registerCounselingRoutes(app:Express){
     }
   });
 
+  app.delete('/api/counseling/students/:studentId',auth,async(req:AuthRequest,res,next)=>{
+    try{
+      const role=await authorize(req,res,['counselor','admin']);
+      if(!role) return;
+      const studentId=String(req.params.studentId);
+      const profile=await StudentProfile.findOne({userId:studentId});
+      if(!profile||profile.status==='inactive') return res.status(404).json({error:'Student not found'});
+
+      const assignment=await CounselorAssignment.findOne({studentId,status:'active'});
+      if(!assignment) return res.status(404).json({error:'Active student assignment not found'});
+      if(role==='counselor'&&String(assignment.counselorId)!==req.userId){
+        return res.status(403).json({error:'Student is not assigned to this counselor'});
+      }
+
+      const user=await User.findById(studentId);
+      if(!user) return res.status(404).json({error:'Student user not found'});
+
+      const before={
+        profile:profile.toJSON(),
+        assignment:assignment.toJSON(),
+        username:user.username,
+      };
+
+      profile.status='inactive';
+      profile.activationTokenHash=undefined;
+      profile.activationExpiresAt=undefined;
+
+      assignment.status='ended';
+      assignment.endedAt=new Date();
+
+      const previousUsername=String(user.username);
+      user.username=`deleted-${studentId}-${Date.now()}`;
+      user.roles=normalizedRoles(user).filter(item=>item!=='student');
+      if(!user.roles.length) user.roles=['personal'];
+
+      await Promise.all([profile.save(),assignment.save(),user.save()]);
+      await logAudit(req.userId!,'student.remove','StudentProfile',profile._id,before,{
+        studentId,
+        previousUsername,
+        status:'inactive',
+      });
+
+      res.json({ok:true,studentId,previousUsername});
+    }catch(error){next(error)}
+  });
+
   app.get('/api/counseling/plans',auth,async(req:AuthRequest,res,next)=>{
     try{
       const studentId=await resolveStudentAccess(req,res,String(req.query.studentId||''));
