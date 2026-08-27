@@ -221,6 +221,7 @@ export function LifeOSApp(){
           tasks={tasks}
           projects={projects}
           learning={learning}
+          report={report}
           loading={loading}
           error={error}
           onCreateTask={input=>createTask({...input,category:'Other'})}
