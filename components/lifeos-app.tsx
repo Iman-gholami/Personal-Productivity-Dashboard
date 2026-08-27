@@ -70,7 +70,8 @@ function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:st
   async function submit(e:FormEvent){
     e.preventDefault();setBusy(true);setError(null);
     try{
-      const result=mode==='login'?await api.login(username,password):await api.register(username,password);
+      const normalizedUsername=username.trim().toLowerCase();
+      const result=mode==='login'?await api.login(normalizedUsername,password):await api.register(normalizedUsername,password);
       onAuthenticated(result.token,username.trim().toLowerCase());
     }catch(err){setError(err instanceof Error?err.message:'Authentication failed')}
     finally{setBusy(false)}
