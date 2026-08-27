@@ -17,6 +17,8 @@ import {
   GraduationCap,
   MessageSquare,
   Plus,
+  Search,
+  AlertTriangle,
   RefreshCw,
   Send,
   ShieldCheck,
@@ -29,6 +31,7 @@ import {CounselingSidebar} from './counseling-sidebar';
 import {
   counselingApi,
   CounselingFeedback,
+  CounselorStudentOverview,
   CounselingMe,
   CounselingMeta,
   CounselingReport,
@@ -175,6 +178,9 @@ function StudentStartGuide({hasPlan,todayTasks}:{hasPlan:boolean;todayTasks:numb
 
 function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:CounselingMeta}){
   const [students,setStudents]=useState<CounselingStudentProfile[]>([]);
+  const [studentOverview,setStudentOverview]=useState<CounselorStudentOverview[]>([]);
+  const [studentSearch,setStudentSearch]=useState('');
+  const [studentFilter,setStudentFilter]=useState<'all'|'attention'|'no-report'|'on-track'>('all');
   const [selectedId,setSelectedId]=useState('');
   const [plans,setPlans]=useState<WeeklyPlan[]>([]);
   const [selectedPlanId,setSelectedPlanId]=useState('');
@@ -198,11 +204,15 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
 
   const loadStudents=useCallback(async()=>{
     try{
-      const items=await counselingApi.listStudents(token);
+      const [items,overview]=await Promise.all([
+        counselingApi.listStudents(token),
+        counselingApi.counselorOverview(token,weekStart),
+      ]);
       setStudents(items);
-      setSelectedId(current=>current||items[0]?.userId||'');
+      setStudentOverview(overview.students);
+      setSelectedId(current=>current&&items.some(item=>item.userId===current)?current:items[0]?.userId||'');
     }catch(err){setError(err instanceof Error?err.message:'خطا در دریافت دانش‌آموزان')}
-  },[token]);
+  },[token,weekStart]);
 
   const loadStudentWorkspace=useCallback(async(studentId:string)=>{
     if(!studentId){setPlans([]);setTasks([]);setReport(null);return}
@@ -389,6 +399,26 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       setFeedback(await counselingApi.listFeedback(token,selectedId));
     }catch(err){setError(err instanceof Error?err.message:'ثبت بازخورد ناموفق بود')}
   }
+
+  const healthPriority:Record<CounselorStudentOverview['health'],number>={attention:0,'no-report':1,'no-plan':2,'on-track':3,complete:4};
+  const filteredStudents=studentOverview
+    .filter(item=>{
+      const query=studentSearch.trim().toLowerCase();
+      const matchesSearch=!query||item.displayName.toLowerCase().includes(query)||item.username.toLowerCase().includes(query);
+      const matchesFilter=studentFilter==='all'
+        ?true
+        :studentFilter==='attention'
+          ?['attention','no-plan'].includes(item.health)
+          :studentFilter==='no-report'
+            ?item.health==='no-report'
+            :['on-track','complete'].includes(item.health);
+      return matchesSearch&&matchesFilter;
+    })
+    .sort((a,b)=>healthPriority[a.health]-healthPriority[b.health]||a.completionRate-b.completionRate);
+  const attentionCount=studentOverview.filter(item=>['attention','no-plan'].includes(item.health)).length;
+  const noReportCount=studentOverview.filter(item=>item.health==='no-report').length;
+  const onTrackCount=studentOverview.filter(item=>['on-track','complete'].includes(item.health)).length;
+  const selectedOverview=studentOverview.find(item=>item.studentId===selectedId)||null;
 
   const subjects=selectedStudent?meta.subjects[selectedStudent.track]:meta.subjects.experimental;
   const activityUsesTests=['educational-test','timed-test','exam'].includes(taskActivity);
