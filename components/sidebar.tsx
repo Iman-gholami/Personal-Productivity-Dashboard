@@ -1,9 +1,9 @@
 'use client';
-import {Activity,BookOpen,Briefcase,CalendarDays,Command,GraduationCap,LayoutDashboard,Menu,تنظیمات,Sparkles,X} from 'lucide-react';
+import {Activity,BookOpen,Briefcase,CalendarDays,Command,GraduationCap,LayoutDashboard,Menu,Settings,Sparkles,X} from 'lucide-react';
 import {useState} from 'react';
 import {ThemeToggle} from './theme-toggle';
 
-export type فضای کاریView='overview'|'work'|'learning'|'review'|'counseling'|'settings';
+export type WorkspaceView='overview'|'work'|'learning'|'review'|'counseling'|'settings';
 
 const links=[
   {id:'overview' as const,label:'خانه',icon:LayoutDashboard},
@@ -56,7 +56,7 @@ export function Sidebar({
       </div>
 
       <div className="relative mb-6">
-        <p className="label mb-3 px-2">Workspace</p>
+        <p className="label mb-3 px-2">فضای کاری</p>
         <nav className="space-y-1.5">
           {links.map(({id,label,icon:Icon})=>{
             const active=activeView===id;
@@ -91,7 +91,7 @@ export function Sidebar({
           className={`group flex w-full items-center gap-3 rounded-[14px] border px-3 py-2.5 text-sm transition duration-200 ${activeView==='settings'?'border-white/[.075] bg-white/[.055] text-white':'border-transparent text-[#858997] hover:border-white/[.05] hover:bg-white/[.03] hover:text-white'}`}
         >
           <span className="grid h-7 w-7 place-items-center rounded-[9px] text-[#747886] group-hover:text-white"><Settings size={15}/></span>
-          Settings
+          تنظیمات
         </button>
 
         <div className="mt-2 flex items-center gap-3 rounded-[16px] border border-white/[.055] bg-white/[.022] p-3">
