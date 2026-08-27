@@ -1,14 +1,15 @@
 'use client';
-import {Activity,BookOpen,Briefcase,CalendarDays,Command,LayoutDashboard,Menu,Settings,Sparkles,X} from 'lucide-react';
+import {Activity,BookOpen,Briefcase,CalendarDays,Command,GraduationCap,LayoutDashboard,Menu,Settings,Sparkles,X} from 'lucide-react';
 import {useState} from 'react';
 
-export type WorkspaceView='overview'|'work'|'learning'|'review'|'settings';
+export type WorkspaceView='overview'|'work'|'learning'|'review'|'counseling'|'settings';
 
 const links=[
   {id:'overview' as const,label:'Overview',icon:LayoutDashboard},
   {id:'work' as const,label:'Work',icon:Briefcase},
   {id:'learning' as const,label:'Learning',icon:BookOpen},
   {id:'review' as const,label:'Daily review',icon:CalendarDays},
+  {id:'counseling' as const,label:'Counseling',icon:GraduationCap},
 ];
 
 export function Sidebar({
