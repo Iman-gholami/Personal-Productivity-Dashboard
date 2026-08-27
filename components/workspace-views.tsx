@@ -155,7 +155,7 @@ function WorkView({
         title:String(form.get('title')||'').trim(),
         description:String(form.get('description')||'').trim()||undefined,
         category:String(form.get('category')||'Other') as TaskCategory,
-        priority:String(form.get('priority')||'medium') as TaskPriority,
+        priority:'medium',
         status:String(form.get('status')||'todo') as TaskStatus,
         projectId:String(form.get('projectId')||'')||undefined,
       });
@@ -185,10 +185,9 @@ function WorkView({
         <div className="mb-4 flex items-center gap-2"><Plus size={16} className="text-violet-300"/><h2 className="font-medium">Log a work task</h2></div>
         <div className="grid gap-3 md:grid-cols-2">
           <input name="title" required className="input md:col-span-2" placeholder="What are you working on?"/>
-          <select name="category" className="input">{taskCategories.map(category=><option key={category} value={category}>{category}</option>)}</select>
+          <select name="category" defaultValue="Other" className="input">{taskCategories.map(category=><option key={category} value={category}>{category}</option>)}</select>
           <select name="projectId" className="input"><option value="">No project</option>{projects.map(project=><option key={project._id} value={project._id}>{project.name}</option>)}</select>
-          <select name="status" className="input"><option value="todo">Todo</option><option value="in-progress">In progress</option><option value="done">Done now</option></select>
-          <select name="priority" className="input"><option value="low">Low priority</option><option value="medium">Medium priority</option><option value="high">High priority</option></select>
+          <select name="status" defaultValue="done" className="input"><option value="done">Done now</option><option value="in-progress">In progress</option><option value="todo">Todo</option></select>
           <textarea name="description" className="input min-h-20 resize-y md:col-span-2" placeholder="Optional note or result"/>
         </div>
         <button disabled={savingTask} className="mt-3 w-full rounded-xl bg-violet-500 px-4 py-3 text-sm font-medium disabled:opacity-50">{savingTask?'Saving...':'Save task'}</button>
