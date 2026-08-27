@@ -23,6 +23,7 @@ import {
   LogOut,
   Plus,
   Settings as SettingsIcon,
+  Trash2,
 } from 'lucide-react';
 import type {
   ApiLearningItem,
@@ -51,6 +52,7 @@ export function WorkspaceViews({
   error,
   onCreateTask,
   onAdvanceTask,
+  onDeleteTask,
   onCreateProject,
   onCreateLearningItem,
   onLogLearningSession,
@@ -76,6 +78,7 @@ export function WorkspaceViews({
     status?:TaskStatus;
   })=>Promise<void>;
   onAdvanceTask:(task:ApiTask)=>Promise<void>;
+  onDeleteTask:(task:ApiTask)=>Promise<void>;
   onCreateProject:(input:{name:string;description?:string})=>Promise<void>;
   onCreateLearningItem:(input:{
     title:string;
@@ -97,6 +100,7 @@ export function WorkspaceViews({
     error={error}
     onCreateTask={onCreateTask}
     onAdvanceTask={onAdvanceTask}
+    onDeleteTask={onDeleteTask}
     onCreateProject={onCreateProject}
     onReportPeriodChange={onReportPeriodChange}
   />;
@@ -129,7 +133,7 @@ function Shell({title,subtitle,icon:Icon,children}:{title:string;subtitle:string
 }
 
 function WorkView({
-  tasks,projects,report,reportPeriod,error,onCreateTask,onAdvanceTask,onCreateProject,onReportPeriodChange,
+  tasks,projects,report,reportPeriod,error,onCreateTask,onAdvanceTask,onDeleteTask,onCreateProject,onReportPeriodChange,
 }:{
   tasks:ApiTask[];
   projects:ApiProject[];
@@ -138,12 +142,16 @@ function WorkView({
   error:string|null;
   onCreateTask:(input:{title:string;description?:string;priority:TaskPriority;category:TaskCategory;projectId?:string;status?:TaskStatus})=>Promise<void>;
   onAdvanceTask:(task:ApiTask)=>Promise<void>;
+  onDeleteTask:(task:ApiTask)=>Promise<void>;
   onCreateProject:(input:{name:string;description?:string})=>Promise<void>;
   onReportPeriodChange:(period:ReportPeriod)=>Promise<void>;
 }){
   const [savingTask,setSavingTask]=useState(false);
   const [savingProject,setSavingProject]=useState(false);
   const openTasks=tasks.filter(task=>task.status!=='done').length;
+  const completedTasks=tasks
+    .filter(task=>task.status==='done')
+    .sort((a,b)=>new Date(b.completedAt||b.updatedAt).getTime()-new Date(a.completedAt||a.updatedAt).getTime());
 
   async function submitTask(e:FormEvent<HTMLFormElement>){
     e.preventDefault();
@@ -241,6 +249,27 @@ function WorkView({
     <section className="mt-4 card p-5">
       <h2 className="font-medium">Automatic summary</h2>
       <p className="mt-3 text-sm leading-7 text-[#c8c7d0]">{report?.work.summary||'No report data yet.'}</p>
+    </section>
+
+    <section className="mt-4 card overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/[.06] p-5">
+        <div><h2 className="font-medium">Completed work</h2><p className="mt-1 text-xs muted">{completedTasks.length} finished tasks</p></div>
+        <CheckCircle2 size={18} className="text-emerald-300"/>
+      </div>
+      <div>{completedTasks.length?completedTasks.map(task=><div key={task._id} className="flex items-center gap-3 border-b border-white/[.045] px-5 py-4 last:border-0">
+        <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg border border-emerald-400/20 bg-emerald-500/10 text-emerald-300"><Check size={15}/></div>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium">{task.title}</p>
+          <p className="mt-1 truncate text-xs muted">{task.category||'Other'} · completed {String(task.completedAt||task.updatedAt).slice(0,10)}</p>
+        </div>
+        <button
+          type="button"
+          onClick={()=>{if(window.confirm(`Delete "${task.title}" permanently?`)) void onDeleteTask(task)}}
+          className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-rose-400/20 bg-rose-500/10 text-rose-200 transition hover:bg-rose-500/20"
+          title="Delete completed task"
+          aria-label={`Delete ${task.title}`}
+        ><Trash2 size={15}/></button>
+      </div>):<div className="p-5"><Empty text="No completed work yet."/></div>}</div>
     </section>
 
     <section className="mt-4 card overflow-hidden">
