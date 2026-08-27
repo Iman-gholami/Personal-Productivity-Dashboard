@@ -1,16 +1,15 @@
 'use client';
-import {Activity,BookOpen,Briefcase,CalendarDays,Command,GraduationCap,LayoutDashboard,Menu,Settings,Sparkles,X} from 'lucide-react';
+import {Activity,BookOpen,Briefcase,CalendarDays,Command,LayoutDashboard,Menu,Settings,Sparkles,X} from 'lucide-react';
 import {useState} from 'react';
 import {ThemeToggle} from './theme-toggle';
 
-export type WorkspaceView='overview'|'work'|'learning'|'review'|'counseling'|'settings';
+export type WorkspaceView='overview'|'work'|'learning'|'review'|'settings';
 
 const links=[
   {id:'overview' as const,label:'خانه',icon:LayoutDashboard},
   {id:'work' as const,label:'کارها',icon:Briefcase},
   {id:'learning' as const,label:'یادگیری',icon:BookOpen},
   {id:'review' as const,label:'مرور روزانه',icon:CalendarDays},
-  {id:'counseling' as const,label:'مشاوره تحصیلی',icon:GraduationCap},
 ];
 
 export function Sidebar({
