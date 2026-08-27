@@ -49,14 +49,15 @@ const reviewInput=z.object({
   date:z.coerce.date().optional(),
 });
 
-const learningInput=z.object({
+const learningBase=z.object({
   title:z.string().trim().min(1).max(200),
   type:z.enum(['course','book']),
   description:z.string().trim().max(2000).optional(),
   totalHours:z.number().min(0).default(0),
   totalPages:z.number().int().min(0).default(0),
   startDate:z.coerce.date().optional(),
-}).superRefine((value,ctx)=>{
+});
+const learningInput=learningBase.superRefine((value,ctx)=>{
   if(value.type==='course'&&value.totalHours<=0){
     ctx.addIssue({code:z.ZodIssueCode.custom,path:['totalHours'],message:'Course total hours must be greater than 0'});
   }
@@ -196,7 +197,7 @@ app.post('/api/learning',auth,async(req:AuthRequest,res,next)=>{
 
 app.patch('/api/learning/:id',auth,async(req:AuthRequest,res,next)=>{
   try{
-    const changes=learningInput.partial().parse(req.body);
+    const changes=learningBase.partial().parse(req.body);
     const item=await LearningItem.findOneAndUpdate(
       {_id:req.params.id,userId:req.userId},
       {$set:changes},
