@@ -536,9 +536,20 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
 
   useEffect(()=>{void load()},[load]);
 
+  const todayIndex=(new Date().getDay()+1)%7;
+  const todayTasks=tasks.filter(task=>task.dayIndex===todayIndex);
+
   return <CounselingShell title="پنل دانش‌آموز" subtitle="برنامه مشاور، ثبت گزارش واقعی و روند پیشرفت" badge={me.student?.displayName||me.username}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
+      <CounselingQuickNav items={[
+        {id:'student-week',label:'برنامه هفته'},
+        {id:'student-tasks',label:'ثبت گزارش'},
+        {id:'student-report',label:'تحلیل عملکرد'},
+        {id:'student-exams',label:'آزمون‌ها'},
+        {id:'student-feedback',label:'بازخورد مشاور'},
+      ]}/>
+      <StudentStartGuide hasPlan={Boolean(plan)} todayTasks={todayTasks.length}/>
       <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MiniMetric label="اجرای برنامه" value={(report?.metrics.completionRate??0)+'%'}/>
         <MiniMetric label="مطالعه این هفته" value={minutesLabel(report?.metrics.actualMinutes??0)}/>
@@ -546,7 +557,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
         <MiniMetric label="دقت تست" value={(report?.metrics.accuracy??0)+'%'}/>
       </section>
 
-      <section className="mt-4 card p-5 md:p-6">
+      <section id="student-week" className="mt-4 scroll-mt-24 card p-5 md:p-6">
         <div className="flex items-start justify-between gap-4">
           <div><p className="section-kicker">This week</p><h2 className="panel-heading">برنامه هفته</h2><p className="panel-subtitle">{plan?plan.weekStart+' تا '+plan.weekEnd:'برنامه منتشرشده‌ای برای این هفته وجود ندارد.'}</p></div>
           <span className="icon-shell text-cyan-300"><CalendarRange size={17}/></span>
@@ -554,7 +565,7 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
         {plans.length>1&&<div className="mt-4 flex flex-wrap gap-2">{plans.slice(0,8).map(item=><button key={item._id} onClick={async()=>{setPlan(item);setTasks(await counselingApi.listPlanTasks(token,item._id))}} className={`rounded-xl border px-3 py-2 text-xs ${plan?._id===item._id?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] muted'}`}>{item.weekStart}</button>)}</div>}
       </section>
 
-      <section className="mt-4 grid gap-4">
+      <section id="student-tasks" className="mt-4 grid scroll-mt-24 gap-4">
         {plan&&dayLabels.map((day,index)=>{
           const items=tasks.filter(task=>task.dayIndex===index);
           if(!items.length)return null;
@@ -566,12 +577,16 @@ function StudentPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Counsel
         {!plan&&<div className="card p-6"><EmptyState text="مشاور هنوز برنامه‌ای منتشر نکرده است."/></div>}
       </section>
 
-      <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
-      <ReportSection report={report} title="تحلیل عملکرد من"/>
+      <div id="student-report" className="scroll-mt-24">
+        <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
+        <ReportSection report={report} title="تحلیل عملکرد من"/>
+      </div>
 
-      <MockExamSection token={token} meta={meta} track={me.student?.track||'experimental'} exams={exams} onSaved={load}/>
+      <div id="student-exams" className="scroll-mt-24">
+        <MockExamSection token={token} meta={meta} track={me.student?.track||'experimental'} exams={exams} onSaved={load}/>
+      </div>
 
-      <section className="mt-4 card overflow-hidden">
+      <section id="student-feedback" className="mt-4 scroll-mt-24 card overflow-hidden">
         <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">Counselor feedback</p><h2 className="panel-heading">بازخورد مشاور</h2></div>
         {feedback.length?<div className="divide-y divide-white/[.04]">{feedback.slice(0,10).map(item=><div key={item._id} className="p-5 md:px-6"><div className="flex items-center justify-between text-[10px] muted"><span>{item.targetType==='week'?'بازخورد هفتگی':item.targetType==='day'?'بازخورد روزانه':'بازخورد تسک'}</span><span>{item.createdAt.slice(0,10)}</span></div><p className="mt-2 text-sm leading-7 text-[#c6c8d1]">{item.text}</p></div>)}</div>:<div className="p-5"><EmptyState text="هنوز بازخوردی ثبت نشده است."/></div>}
       </section>
