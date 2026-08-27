@@ -126,6 +126,19 @@ export function LifeOSApp(){
     }
   }
 
+  async function deleteTask(task:ApiTask){
+    if(!token)return;
+    try{
+      await api.deleteTask(token,task._id);
+      setTasks(current=>current.filter(item=>item._id!==task._id));
+      setError(null);
+      await refreshReport();
+    }catch(err){
+      setError(err instanceof Error?err.message:'Unable to delete task');
+      throw err;
+    }
+  }
+
   async function createProject(input:{name:string;description?:string}){
     if(!token)return;
     try{
@@ -226,6 +239,7 @@ export function LifeOSApp(){
           error={error}
           onCreateTask={createTask}
           onAdvanceTask={advanceTask}
+          onDeleteTask={deleteTask}
           onCreateProject={createProject}
           onCreateLearningItem={createLearningItem}
           onLogLearningSession={logLearningSession}
