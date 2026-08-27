@@ -589,9 +589,19 @@ export function registerCounselingRoutes(app:Express){
         const plan=await WeeklyPlan.findById(task.planId).select('status');
         if(!plan||plan.status!=='published') return res.status(403).json({error:'Plan is not published'});
       }
+      const usesTests=activityUsesTests(String(task.activityType));
+      const usesPages=activityUsesPages(String(task.activityType));
+      const normalizedBody={
+        ...body,
+        testsAttempted:usesTests?body.correctAnswers+body.wrongAnswers+body.unanswered:0,
+        correctAnswers:usesTests?body.correctAnswers:0,
+        wrongAnswers:usesTests?body.wrongAnswers:0,
+        unanswered:usesTests?body.unanswered:0,
+        pagesRead:usesPages?body.pagesRead:0,
+      };
       const submission=await TaskSubmission.findOneAndUpdate(
         {taskId:task._id},
-        {$set:{...body,studentId:task.studentId,submittedAt:new Date()}},
+        {$set:{...normalizedBody,studentId:task.studentId,submittedAt:new Date()}},
         {returnDocument:'after',upsert:true,runValidators:true,setDefaultsOnInsert:true},
       );
       await recomputeDailyMetric(String(task.studentId),task.date);
@@ -879,14 +889,16 @@ async function recomputeDailyMetric(studentId:string,date:string){
 
   for(const task of tasks){
     const submission:any=submissionMap.get(String(task._id));
+    const usesTests=activityUsesTests(String(task.activityType));
+    const usesPages=activityUsesPages(String(task.activityType));
     metric.plannedMinutes+=Number(task.plannedMinutes||0);
-    metric.plannedTests+=Number(task.plannedTests||0);
+    metric.plannedTests+=usesTests?Number(task.plannedTests||0):0;
     const subject=String(task.subject||'سایر');
     const subjectMetric=metric.subjectBreakdown[subject]||{
       plannedMinutes:0,actualMinutes:0,plannedTests:0,attemptedTests:0,correct:0,wrong:0,unanswered:0,tasks:0,completionTotal:0,
     };
     subjectMetric.plannedMinutes+=Number(task.plannedMinutes||0);
-    subjectMetric.plannedTests+=Number(task.plannedTests||0);
+    subjectMetric.plannedTests+=usesTests?Number(task.plannedTests||0):0;
     subjectMetric.tasks+=1;
 
     const completion=taskCompletion(task,submission);
@@ -895,15 +907,15 @@ async function recomputeDailyMetric(studentId:string,date:string){
 
     if(submission){
       metric.actualMinutes+=Number(submission.actualMinutes||0);
-      metric.attemptedTests+=Number(submission.testsAttempted||0);
-      metric.correct+=Number(submission.correctAnswers||0);
-      metric.wrong+=Number(submission.wrongAnswers||0);
-      metric.unanswered+=Number(submission.unanswered||0);
+      metric.attemptedTests+=usesTests?Number(submission.testsAttempted||0):0;
+      metric.correct+=usesTests?Number(submission.correctAnswers||0):0;
+      metric.wrong+=usesTests?Number(submission.wrongAnswers||0):0;
+      metric.unanswered+=usesTests?Number(submission.unanswered||0):0;
       subjectMetric.actualMinutes+=Number(submission.actualMinutes||0);
-      subjectMetric.attemptedTests+=Number(submission.testsAttempted||0);
-      subjectMetric.correct+=Number(submission.correctAnswers||0);
-      subjectMetric.wrong+=Number(submission.wrongAnswers||0);
-      subjectMetric.unanswered+=Number(submission.unanswered||0);
+      subjectMetric.attemptedTests+=usesTests?Number(submission.testsAttempted||0):0;
+      subjectMetric.correct+=usesTests?Number(submission.correctAnswers||0):0;
+      subjectMetric.wrong+=usesTests?Number(submission.wrongAnswers||0):0;
+      subjectMetric.unanswered+=usesTests?Number(submission.unanswered||0):0;
       if(submission.status==='done') metric.completedTasks+=1;
       if(submission.status==='partial') metric.partialTasks+=1;
       if(submission.status==='skipped') metric.skippedTasks+=1;
@@ -927,13 +939,21 @@ async function recomputeDailyMetric(studentId:string,date:string){
   return metric;
 }
 
+function activityUsesTests(value:string){
+  return ['educational-test','timed-test','exam'].includes(value);
+}
+
+function activityUsesPages(value:string){
+  return ['study','review','summary','remediation'].includes(value);
+}
+
 function taskCompletion(task:any,submission:any){
   if(!submission||submission.status==='not-started'||submission.status==='skipped') return 0;
   if(submission.status==='done') return 100;
   const ratios:number[]=[];
   if(Number(task.plannedMinutes)>0) ratios.push(Math.min(1,Number(submission.actualMinutes||0)/Number(task.plannedMinutes)));
-  if(Number(task.plannedTests)>0) ratios.push(Math.min(1,Number(submission.testsAttempted||0)/Number(task.plannedTests)));
-  if(Number(task.plannedPages)>0) ratios.push(Math.min(1,Number(submission.pagesRead||0)/Number(task.plannedPages)));
+  if(activityUsesTests(String(task.activityType))&&Number(task.plannedTests)>0) ratios.push(Math.min(1,Number(submission.testsAttempted||0)/Number(task.plannedTests)));
+  if(activityUsesPages(String(task.activityType))&&Number(task.plannedPages)>0) ratios.push(Math.min(1,Number(submission.pagesRead||0)/Number(task.plannedPages)));
   if(!ratios.length) return submission.status==='partial'?50:25;
   return round(ratios.reduce((sum,value)=>sum+value,0)/ratios.length*100);
 }
