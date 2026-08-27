@@ -394,9 +394,33 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   const activityUsesTests=['educational-test','timed-test','exam'].includes(taskActivity);
   const activityUsesPages=['study','review','summary','remediation'].includes(taskActivity);
 
+  const counselorTaskDone=tasks.filter(task=>task.submission?.status==='done').length;
+  const counselorTaskProgress=tasks.length?Math.round((counselorTaskDone/tasks.length)*100):0;
+
   return <CounselingShell title="پنل مشاور" subtitle="دانش‌آموز را انتخاب کن، برنامه هفته را بساز و بعد گزارش عملکردش را بررسی کن." badge={'مشاور · '+me.username}>
-    <div dir="rtl">
+    <div dir="rtl" className="counselor-dashboard">
       {error&&<InlineError message={error}/>}
+
+      {selectedStudent?<section className="counselor-context-card">
+        <div className="counselor-context-main">
+          <div className="counselor-avatar">{selectedStudent.displayName.slice(0,1)}</div>
+          <div className="min-w-0">
+            <span className="counselor-context-label">دانش‌آموز انتخاب‌شده</span>
+            <h2>{selectedStudent.displayName}</h2>
+            <p>{trackLabel(selectedStudent.track)} · {gradeLabel(selectedStudent.grade)} · {studentStatusLabel(selectedStudent.status)}</p>
+          </div>
+        </div>
+        <div className="counselor-context-stats">
+          <div><strong>{tasks.length}</strong><span>تسک هفته</span></div>
+          <div><strong>{counselorTaskDone}</strong><span>انجام‌شده</span></div>
+          <div><strong>{report?.metrics.actualMinutes?minutesLabel(report.metrics.actualMinutes):'۰ دقیقه'}</strong><span>مطالعه</span></div>
+          <div><strong>{counselorTaskProgress}%</strong><span>پیشرفت</span></div>
+        </div>
+      </section>:<section className="counselor-context-empty">
+        <Users size={20}/>
+        <div><strong>یک دانش‌آموز انتخاب کن</strong><span>بعد از انتخاب، برنامه و گزارش همان دانش‌آموز اینجا باز می‌شود.</span></div>
+      </section>}
+
       <DisclosureBox id="counseling-students" title="دانش‌آموزها" subtitle="دانش‌آموز را انتخاب کن یا یک دانش‌آموز جدید بساز." defaultOpen accent="emerald">
         <section className="grid gap-4 xl:grid-cols-[1fr_1.5fr]">
         <div className="flex items-center justify-between xl:col-span-2">
@@ -449,7 +473,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
 
       {selectedStudent&&<>
         <DisclosureBox id="counseling-plan" title={`برنامه هفتگی ${selectedStudent.displayName}`} subtitle="برنامه هفته را بساز، تسک‌ها را اضافه کن و در پایان منتشر کن." defaultOpen accent="violet">
-        <section className="rounded-[16px] border border-white/[.055] bg-white/[.018] p-5 md:p-6">
+        <section className="counselor-plan-shell">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div><p className="section-kicker">برنامه هفتگی</p><h2 className="panel-heading">برنامه هفتگی {selectedStudent.displayName}</h2><p className="panel-subtitle">هر هفته از شنبه شروع می‌شود و برنامه می‌تواند قبل یا بعد از انتشار اصلاح شود.</p></div>
             <div className="flex flex-wrap items-center gap-2">
@@ -468,7 +492,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
         </section>
 
         {selectedPlan&&<section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.4fr]">
-          <form key={editingTask?._id||selectedPlan._id} onSubmit={saveTask} className="card p-5 md:p-6">
+          <form key={editingTask?._id||selectedPlan._id} onSubmit={saveTask} className="counselor-builder-card">
             <div className="mb-5 flex items-start justify-between">
               <div><p className="section-kicker">{editingTask?'Edit task':'Plan item'}</p><h2 className="panel-heading">{editingTask?'ویرایش تسک':'افزودن تسک به برنامه'}</h2><p className="panel-subtitle">درس، پایه، فصل، مبحث و هدف‌های کمی برنامه را ثبت کن.</p></div>
               <span className="icon-shell text-violet-300">{editingTask?<Edit3 size={16}/>:<Plus size={16}/>}</span>
@@ -495,7 +519,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             </div>
           </form>
 
-          <div className="card overflow-hidden">
+          <div className="counselor-week-card overflow-hidden">
             <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">برنامه هفته</p><h2 className="panel-heading">تسک‌های هفته</h2><p className="panel-subtitle">{tasks.length} آیتم برنامه‌ریزی‌شده</p></div>
             {tasks.length?<div className="divide-y divide-white/[.04]">{dayLabels.map((day,index)=>{
               const dayTasks=tasks.filter(task=>task.dayIndex===index);
