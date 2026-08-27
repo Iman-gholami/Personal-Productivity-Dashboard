@@ -358,7 +358,14 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   return <CounselingShell title="پنل مشاور" subtitle="برنامه‌ریزی هفتگی، گزارش عملکرد و بازخورد دانش‌آموز" badge={me.username}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
-      <section className="grid gap-4 xl:grid-cols-[1fr_1.5fr]">
+      <CounselingQuickNav items={[
+        {id:'counseling-students',label:'دانش‌آموزها'},
+        {id:'counseling-plan',label:'برنامه هفته'},
+        {id:'counseling-report',label:'گزارش'},
+        {id:'counseling-feedback',label:'بازخورد'},
+      ]}/>
+      <CounselorStartGuide hasStudent={Boolean(selectedStudent)} hasPlan={Boolean(selectedPlan)} published={selectedPlan?.status==='published'}/>
+      <section id="counseling-students" className="grid scroll-mt-24 gap-4 xl:grid-cols-[1fr_1.5fr]">
         <form onSubmit={createStudent} className="card p-5 md:p-6">
           <div className="mb-5 flex items-start justify-between gap-3">
             <div><p className="section-kicker">Students</p><h2 className="panel-heading">ایجاد دانش‌آموز</h2><p className="panel-subtitle">حساب دانش‌آموز با کد فعال‌سازی یک‌بارمصرف ساخته می‌شود.</p></div>
@@ -396,7 +403,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       </section>
 
       {selectedStudent&&<>
-        <section className="mt-4 card p-5 md:p-6">
+        <section id="counseling-plan" className="mt-4 scroll-mt-24 card p-5 md:p-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div><p className="section-kicker">Weekly plan</p><h2 className="panel-heading">برنامه هفتگی {selectedStudent.displayName}</h2><p className="panel-subtitle">هر هفته از شنبه شروع می‌شود و برنامه می‌تواند قبل یا بعد از انتشار اصلاح شود.</p></div>
             <div className="flex flex-wrap items-center gap-2">
@@ -463,10 +470,12 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
           </div>
         </section>}
 
-        <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
-        <ReportSection report={report} title="تحلیل عملکرد دانش‌آموز"/>
+        <div id="counseling-report" className="scroll-mt-24">
+          <ReportPeriodControls value={reportPeriod} onChange={setReportPeriod}/>
+          <ReportSection report={report} title="تحلیل عملکرد دانش‌آموز"/>
+        </div>
 
-        <section className="mt-4 grid gap-4 xl:grid-cols-[1fr_1.4fr]">
+        <section id="counseling-feedback" className="mt-4 grid scroll-mt-24 gap-4 xl:grid-cols-[1fr_1.4fr]">
           <form onSubmit={submitFeedback} className="card p-5 md:p-6">
             <div className="mb-4"><p className="section-kicker">Feedback</p><h2 className="panel-heading">بازخورد هفتگی مشاور</h2><p className="panel-subtitle">این متن مستقیماً در پنل دانش‌آموز نمایش داده می‌شود.</p></div>
             <div className="grid gap-3">
