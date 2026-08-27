@@ -331,26 +331,26 @@ function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:st
           <div className="mb-4 flex items-center gap-3"><div className="grid h-10 w-10 place-items-center rounded-[13px] bg-gradient-to-br from-violet-400 via-violet-600 to-cyan-500"><Command size={18}/></div><div><p className="font-semibold">LifeOS</p><p className="text-[9px] uppercase tracking-[.2em] text-violet-300/80">Personal command</p></div></div>
         </div>
         <div className="mb-7">
-          <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-[#727684]"><ShieldCheck size={13} className="text-cyan-300"/>Secure session</div>
-          <h2 className="text-2xl font-semibold tracking-[-.035em]">{mode==='login'?'Welcome back':mode==='register'?'Create your workspace':'Activate student account'}</h2>
-          <p className="mt-2 text-sm text-[#7d8190]">{mode==='login'?'Sign in to continue to your command center.':mode==='register'?'Create an account to start tracking your work and learning.':'Use the activation code provided by your counselor and choose your password.'}</p>
+          <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-[#727684]"><ShieldCheck size={13} className="text-cyan-300"/>ورود امن</div>
+          <h2 className="text-2xl font-semibold tracking-[-.035em]">{mode==='login'?'خوش آمدی':mode==='register'?'ساخت حساب':'فعال‌سازی حساب دانش‌آموز'}</h2>
+          <p className="mt-2 text-sm text-[#7d8190]">{mode==='login'?'برای ورود به پنل، نام کاربری و رمزت را وارد کن.':mode==='register'?'یک حساب شخصی بساز تا کارها و یادگیریت را مدیریت کنی.':'نام کاربری و کد فعال‌سازی‌ای که مشاور داده وارد کن و یک رمز جدید بساز.'}</p>
         </div>
         <div className="mb-5 grid grid-cols-3 rounded-[14px] border border-white/[.055] bg-black/20 p-1">
-          <button type="button" onClick={()=>{setMode('login');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='login'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Login</button>
-          <button type="button" onClick={()=>{setMode('register');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='register'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Register</button>
-          <button type="button" onClick={()=>{setMode('activate');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='activate'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Student</button>
+          <button type="button" onClick={()=>{setMode('login');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='login'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>ورود</button>
+          <button type="button" onClick={()=>{setMode('register');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='register'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>ثبت‌نام</button>
+          <button type="button" onClick={()=>{setMode('activate');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='activate'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>دانش‌آموز</button>
         </div>
         <form onSubmit={submit} className="space-y-3">
-          <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Username</label><input name="username" required minLength={3} maxLength={40} className="input" placeholder="Enter username" autoComplete="username" defaultValue={username}/></div>
-          {mode==='activate'&&<div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Activation code</label><input name="activationCode" required className="input" placeholder="Paste activation code"/></div>}
-          <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Password</label><input name="password" required minLength={8} maxLength={100} type="password" className="input" placeholder={mode==='activate'?'Choose a new password':'Enter password'} autoComplete={mode==='login'?'current-password':'new-password'} defaultValue={password}/></div>
+          <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">نام کاربری</label><input name="username" required minLength={3} maxLength={40} className="input" placeholder="نام کاربری" autoComplete="username" defaultValue={username}/></div>
+          {mode==='activate'&&<div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">کد فعال‌سازی</label><input name="activationCode" required className="input" placeholder="کدی که مشاور بهت داده"/></div>}
+          <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">رمز عبور</label><input name="password" required minLength={8} maxLength={100} type="password" className="input" placeholder={mode==='activate'?'یک رمز جدید انتخاب کن':'رمز عبور'} autoComplete={mode==='login'?'current-password':'new-password'} defaultValue={password}/></div>
           {notice&&<p className="rounded-[12px] border border-emerald-400/15 bg-emerald-500/[.07] px-3 py-2.5 text-xs text-emerald-200">{notice}</p>}
           {error&&<p className="rounded-[12px] border border-rose-400/15 bg-rose-500/[.07] px-3 py-2.5 text-xs text-rose-200">{error}</p>}
-          <button disabled={busy} className="btn-primary mt-1 w-full">{busy?'Working...':mode==='login'?'Enter LifeOS':mode==='register'?'Create account':'Activate student account'}</button>
+          <button disabled={busy} className="btn-primary mt-1 w-full">{busy?'Working...':mode==='login'?'ورود به پنل':mode==='register'?'ساخت حساب':'فعال‌سازی حساب'}</button>
         </form>
         <div className="mt-6 flex items-center justify-between border-t border-white/[.055] pt-4 text-[10px] text-[#656977]">
-          <span>Next.js proxy</span>
-          <span className="flex items-center gap-1.5"><span className="status-dot"/>Backend online</span>
+          <span>ارتباط با سرور</span>
+          <span className="flex items-center gap-1.5"><span className="status-dot"/>سرور آنلاین</span>
         </div>
       </section>
     </div>
