@@ -377,8 +377,8 @@ export function registerCounselingRoutes(app:Express){
       await plan.save();
       if(body.status==='archived'){
         await StudyTask.updateMany({planId:plan._id},{$set:{archived:true}});
-        await Promise.all(Array.from({length:7},(_,dayIndex)=>recomputeDailyMetric(String(plan.studentId),addDays(plan.weekStart,dayIndex))));
       }
+      await Promise.all(Array.from({length:7},(_,dayIndex)=>recomputeDailyMetric(String(plan.studentId),addDays(plan.weekStart,dayIndex))));
       await logAudit(req.userId!,'plan.status','WeeklyPlan',plan._id,before,plan.toJSON());
       res.json(plan);
     }catch(error){next(error)}
@@ -588,6 +588,16 @@ export function registerCounselingRoutes(app:Express){
     }catch(error){next(error)}
   });
 
+  app.get('/api/counseling/counselor-reviews',auth,async(req:AuthRequest,res,next)=>{
+    try{
+      const role=await authorize(req,res,['counselor','admin']);
+      if(!role) return;
+      const counselorId=role==='counselor'?req.userId!:String(req.query.counselorId||'');
+      if(!counselorId) return res.status(400).json({error:'counselorId is required'});
+      res.json(await CounselorReview.find({counselorId}).sort({createdAt:-1}).limit(100).lean());
+    }catch(error){next(error)}
+  });
+
   app.post('/api/counseling/admin/counselor-reviews',auth,async(req:AuthRequest,res,next)=>{
     try{
       const role=await authorize(req,res,['admin']);
@@ -745,7 +755,18 @@ async function materializeRecurringRules(studentId:string,counselorId:string,pla
 }
 
 async function recomputeDailyMetric(studentId:string,date:string){
-  const tasks=await StudyTask.find({studentId,date,archived:false}).lean();
+  const publishedPlans=await WeeklyPlan.find({
+    studentId,
+    status:'published',
+    weekStart:{$lte:date},
+    weekEnd:{$gte:date},
+  }).select('_id').lean();
+  const tasks=await StudyTask.find({
+    studentId,
+    date,
+    archived:false,
+    planId:{$in:publishedPlans.map(plan=>plan._id)},
+  }).lean();
   const submissions=await TaskSubmission.find({taskId:{$in:tasks.map(task=>task._id)}}).lean();
   const submissionMap=new Map(submissions.map(item=>[String(item.taskId),item]));
   const metric={
