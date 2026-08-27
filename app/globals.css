@@ -1269,3 +1269,354 @@ html[data-theme="light"] .counseling-role-badge{
   background:rgba(16,185,129,.045);
   color:#047857;
 }
+
+
+/* Counselor student cockpit */
+.counselor-roster-cockpit{
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:24px;
+  background:linear-gradient(145deg,rgba(15,18,26,.95),rgba(8,10,15,.92));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 24px 70px rgba(0,0,0,.18);
+}
+.counselor-roster-head{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  padding:1.15rem 1.2rem;
+  border-bottom:1px solid rgba(255,255,255,.05);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(52,211,153,.07),transparent 32%),
+    rgba(255,255,255,.012);
+}
+.counselor-roster-eyebrow{
+  display:block;
+  color:#6ee7b7;
+  font-size:9px;
+  font-weight:750;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.counselor-roster-head h2{margin-top:.2rem;font-size:19px;font-weight:750}
+.counselor-roster-head p{margin-top:.2rem;color:#858a97;font-size:10px}
+
+.counselor-roster-summary{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:.55rem;
+  padding:.9rem 1rem 0;
+}
+.counselor-roster-summary button{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:.7rem;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:14px;
+  background:rgba(255,255,255,.018);
+  padding:.72rem .8rem;
+  color:#858a97;
+  transition:.2s ease;
+}
+.counselor-roster-summary button:hover,
+.counselor-roster-summary button.active{
+  border-color:rgba(52,211,153,.18);
+  background:rgba(16,185,129,.055);
+  color:#d9f8e9;
+}
+.counselor-roster-summary strong{font-size:17px;color:inherit}
+.counselor-roster-summary span{font-size:9px}
+
+.counselor-activation-banner{
+  display:grid;
+  gap:.7rem;
+  margin:.9rem 1rem 0;
+  border:1px solid rgba(52,211,153,.20);
+  border-radius:15px;
+  background:rgba(16,185,129,.055);
+  padding:.8rem;
+}
+.counselor-activation-banner>div{display:flex;flex-direction:column}
+.counselor-activation-banner>div span{font-size:9px;color:#75dcb1}
+.counselor-activation-banner>div strong{margin-top:.1rem;font-size:12px}
+.counselor-activation-banner code{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  border:1px solid rgba(52,211,153,.10);
+  border-radius:10px;
+  background:rgba(0,0,0,.17);
+  padding:.55rem .65rem;
+  color:#84e8d3;
+  font-size:9px;
+  white-space:nowrap;
+}
+.counselor-activation-banner>button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.4rem;
+  border:1px solid rgba(52,211,153,.14);
+  border-radius:10px;
+  padding:.55rem .7rem;
+  color:#91eac5;
+  font-size:10px;
+}
+
+.counselor-create-student{
+  margin:.9rem 1rem 0;
+  border:1px solid rgba(139,108,255,.13);
+  border-radius:17px;
+  background:rgba(139,108,255,.035);
+  padding:1rem;
+}
+.counselor-create-student-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:.8rem;
+  color:#b9aeec;
+}
+.counselor-create-student-head>div{display:flex;flex-direction:column}
+.counselor-create-student-head strong{font-size:12px}
+.counselor-create-student-head span{margin-top:.1rem;color:#7e8390;font-size:9px}
+.counselor-create-student label{display:flex;flex-direction:column;gap:.3rem}
+.counselor-create-student label>span{color:#878c98;font-size:9px}
+
+.counselor-roster-toolbar{
+  display:flex;
+  flex-direction:column;
+  gap:.65rem;
+  padding:.9rem 1rem;
+}
+.counselor-roster-search{
+  display:flex;
+  align-items:center;
+  gap:.55rem;
+  border:1px solid rgba(255,255,255,.065);
+  border-radius:13px;
+  background:rgba(255,255,255,.02);
+  padding:.62rem .75rem;
+  color:#707582;
+}
+.counselor-roster-search:focus-within{
+  border-color:rgba(52,211,153,.20);
+  box-shadow:0 0 0 3px rgba(16,185,129,.04);
+}
+.counselor-roster-search input{
+  min-width:0;
+  flex:1;
+  outline:none;
+  background:transparent;
+  color:inherit;
+  font-size:10px;
+}
+.counselor-roster-search input::placeholder{color:#626773}
+.counselor-roster-search button{
+  color:#7c818d;
+  font-size:16px;
+  line-height:1;
+}
+.counselor-filter-chips{display:flex;flex-wrap:wrap;gap:.35rem}
+.counselor-filter-chips button{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:999px;
+  background:rgba(255,255,255,.015);
+  padding:.38rem .65rem;
+  color:#767b88;
+  font-size:9px;
+  transition:.2s ease;
+}
+.counselor-filter-chips button:hover,
+.counselor-filter-chips button.active{
+  border-color:rgba(139,108,255,.18);
+  background:rgba(139,108,255,.06);
+  color:#c8c0ed;
+}
+
+.counselor-roster-table{
+  border-top:1px solid rgba(255,255,255,.045);
+}
+.counselor-roster-table-head{
+  display:none;
+  grid-template-columns:minmax(180px,1.5fr) minmax(110px,.8fr) minmax(150px,1.15fr) 90px 70px 65px 100px 60px;
+  gap:.55rem;
+  align-items:center;
+  padding:.55rem 1rem;
+  color:#616674;
+  font-size:8px;
+  font-weight:650;
+}
+.counselor-roster-row{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:.5rem;
+  padding:.75rem 1rem;
+  border-top:1px solid rgba(255,255,255,.04);
+  transition:.18s ease;
+}
+.counselor-roster-row:first-of-type{border-top:0}
+.counselor-roster-row:hover{background:rgba(255,255,255,.018)}
+.counselor-roster-row.selected{
+  background:linear-gradient(90deg,rgba(139,108,255,.075),rgba(53,214,199,.018));
+  box-shadow:inset 3px 0 0 rgba(139,108,255,.65);
+}
+.counselor-roster-row button{
+  min-width:0;
+  text-align:right;
+}
+.counselor-roster-person{
+  display:flex;
+  align-items:center;
+  gap:.65rem;
+}
+.counselor-roster-avatar{
+  display:grid;
+  width:35px;height:35px;flex:0 0 35px;place-items:center;
+  border:1px solid rgba(139,108,255,.13);
+  border-radius:11px;
+  background:linear-gradient(145deg,rgba(139,108,255,.12),rgba(53,214,199,.035));
+  color:#cfc7f4;
+  font-size:12px;
+  font-weight:800;
+}
+.counselor-roster-person strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.counselor-roster-person small{display:block;overflow:hidden;margin-top:.12rem;color:#6f7481;font-size:8px;text-overflow:ellipsis;white-space:nowrap}
+
+.counselor-roster-health{
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+  justify-self:end;
+  border:1px solid rgba(255,255,255,.045);
+  border-radius:999px;
+  padding:.3rem .5rem;
+  color:#848995;
+  font-size:8px;
+}
+.counselor-health-dot{width:6px;height:6px;border-radius:999px;background:#717681;box-shadow:0 0 8px rgba(113,118,129,.3)}
+.counselor-health-attention{background:#fb7185;box-shadow:0 0 9px rgba(251,113,133,.45)}
+.counselor-health-no-report{background:#fbbf24;box-shadow:0 0 9px rgba(251,191,36,.42)}
+.counselor-health-no-plan{background:#a78bfa;box-shadow:0 0 9px rgba(167,139,250,.40)}
+.counselor-health-on-track{background:#34d399;box-shadow:0 0 9px rgba(52,211,153,.42)}
+.counselor-health-complete{background:#22d3ee;box-shadow:0 0 9px rgba(34,211,238,.42)}
+
+.counselor-roster-progress,
+.counselor-roster-metric,
+.counselor-roster-last{display:none}
+.counselor-roster-progress>div{display:flex;align-items:baseline;justify-content:space-between;gap:.4rem}
+.counselor-roster-progress strong{font-size:11px}
+.counselor-roster-progress small,
+.counselor-roster-progress em{color:#6f7481;font-size:8px;font-style:normal}
+.counselor-roster-progress>span{
+  display:block;
+  overflow:hidden;
+  height:4px;
+  margin:.3rem 0 .15rem;
+  border-radius:999px;
+  background:rgba(255,255,255,.05);
+}
+.counselor-roster-progress i{
+  display:block;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg,#8b6cff,#35d6c7);
+}
+.counselor-roster-metric strong,
+.counselor-roster-last strong{display:block;font-size:10px;font-weight:650}
+.counselor-roster-metric small,
+.counselor-roster-last small{display:block;margin-top:.1rem;color:#6d7280;font-size:8px}
+.counselor-roster-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.3rem;
+}
+.counselor-roster-actions button{
+  display:grid;
+  min-width:28px;
+  height:28px;
+  place-items:center;
+  border:1px solid rgba(255,255,255,.055);
+  border-radius:8px;
+  color:#858a96;
+  font-size:8px;
+}
+.counselor-roster-actions button:hover{background:rgba(255,255,255,.035);color:white}
+.counselor-roster-actions button.danger{border-color:rgba(244,63,94,.10);color:#e48b99}
+.counselor-roster-empty{
+  display:grid;
+  place-items:center;
+  gap:.3rem;
+  padding:2.5rem 1rem;
+  color:#6f7481;
+  text-align:center;
+}
+.counselor-roster-empty strong{margin-top:.25rem;color:#aeb2bc;font-size:11px}
+.counselor-roster-empty span{font-size:9px}
+
+@media (min-width:700px){
+  .counselor-roster-summary{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .counselor-roster-toolbar{flex-direction:row;align-items:center;justify-content:space-between}
+  .counselor-roster-search{width:min(330px,45%)}
+  .counselor-activation-banner{grid-template-columns:auto minmax(240px,1fr) auto;align-items:center}
+}
+@media (min-width:1100px){
+  .counselor-roster-table-head{display:grid}
+  .counselor-roster-row{
+    grid-template-columns:minmax(180px,1.5fr) minmax(110px,.8fr) minmax(150px,1.15fr) 90px 70px 65px 100px 60px;
+    gap:.55rem;
+    align-items:center;
+    min-height:62px;
+    padding:.55rem 1rem;
+  }
+  .counselor-roster-health{justify-self:start}
+  .counselor-roster-progress,
+  .counselor-roster-metric,
+  .counselor-roster-last{display:block}
+}
+html[data-theme="light"] .counselor-roster-cockpit{
+  border-color:rgba(20,83,45,.09);
+  background:linear-gradient(145deg,#ffffff,#f8fcfa);
+  box-shadow:0 20px 55px rgba(30,80,55,.06);
+}
+html[data-theme="light"] .counselor-roster-head{border-color:rgba(20,83,45,.07);background:linear-gradient(145deg,#fbfffd,#f5fcf8)}
+html[data-theme="light"] .counselor-roster-eyebrow{color:#047857}
+html[data-theme="light"] .counselor-roster-head p{color:#718178}
+html[data-theme="light"] .counselor-roster-summary button,
+html[data-theme="light"] .counselor-roster-search,
+html[data-theme="light"] .counselor-filter-chips button{
+  border-color:rgba(20,83,45,.08);
+  background:#fbfefc;
+}
+html[data-theme="light"] .counselor-roster-summary button:hover,
+html[data-theme="light"] .counselor-roster-summary button.active{
+  border-color:rgba(5,150,105,.16);
+  background:#ecfdf5;
+  color:#047857;
+}
+html[data-theme="light"] .counselor-roster-search:focus-within{border-color:rgba(5,150,105,.20)}
+html[data-theme="light"] .counselor-filter-chips button:hover,
+html[data-theme="light"] .counselor-filter-chips button.active{
+  border-color:rgba(5,150,105,.14);
+  background:#ecfdf5;
+  color:#047857;
+}
+html[data-theme="light"] .counselor-roster-table,
+html[data-theme="light"] .counselor-roster-row{border-color:rgba(20,83,45,.065)}
+html[data-theme="light"] .counselor-roster-row:hover{background:#fbfefc}
+html[data-theme="light"] .counselor-roster-row.selected{
+  background:linear-gradient(90deg,rgba(16,185,129,.07),rgba(255,255,255,.92));
+  box-shadow:inset 3px 0 0 rgba(5,150,105,.60);
+}
+html[data-theme="light"] .counselor-roster-avatar{border-color:rgba(5,150,105,.12);background:#ecfdf5;color:#047857}
+html[data-theme="light"] .counselor-roster-health,
+html[data-theme="light"] .counselor-roster-actions button{border-color:rgba(20,83,45,.08);background:#fbfefc}
+html[data-theme="light"] .counselor-roster-progress>span{background:rgba(20,83,45,.07)}
+html[data-theme="light"] .counselor-create-student{border-color:rgba(5,150,105,.12);background:#f3fbf7}
+html[data-theme="light"] .counselor-activation-banner{border-color:rgba(5,150,105,.16);background:#ecfdf5}
+html[data-theme="light"] .counselor-activation-banner code{border-color:rgba(5,150,105,.10);background:#ffffff;color:#047857}
