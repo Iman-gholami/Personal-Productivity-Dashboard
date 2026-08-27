@@ -502,7 +502,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
               if(!dayTasks.length)return null;
               return <div key={day} className="p-5 md:px-6">
                 <p className="mb-3 text-[10px] font-semibold uppercase tracking-[.16em] text-cyan-300/80">{day}</p>
-                <div className="space-y-2">{dayTasks.map(task=><div key={task._id} className="group rounded-[14px] border border-white/[.055] bg-white/[.018] p-4 transition hover:bg-white/[.03]">
+                <div className="space-y-2">{dayTasks.map(task=><div key={task._id} className="group rounded-[14px] border border-violet-400/[.13] bg-white/[.018] p-4 shadow-[inset_3px_0_0_rgba(139,108,255,.22)] transition hover:border-violet-400/[.24] hover:bg-white/[.03]">
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-medium">{task.subject} · {task.chapter}</p><span className="pill text-[9px] text-violet-200">{activityLabel(meta,task.activityType)}</span></div>
                     <p className="mt-2 text-[11px] leading-5 muted">{task.book||'بدون نام کتاب'}{task.topic?' · '+task.topic:''}</p>
@@ -728,14 +728,14 @@ function AdminPanel({token,me}:{token:string;me:CounselingMe}){
   return <CounselingShell title="پنل ادمین مشاوره" subtitle="نمای کلی مشاورها و دانش‌آموزها و ثبت بازخورد مدیریتی." badge={'ادمین · '+me.username}>
     <div dir="rtl">
       {error&&<InlineError message={error}/>}
-      <section className="grid gap-3 sm:grid-cols-3"><MiniMetric label="مشاور" value={counselors.length}/><MiniMetric label="دانش‌آموز" value={students.length}/><MiniMetric label="دانش‌آموز فعال" value={students.filter(item=>item.status==='active').length}/></section>
-      <section className="mt-4 card overflow-hidden">
+      <section id="admin-overview" className="grid scroll-mt-24 gap-3 sm:grid-cols-3"><MiniMetric label="مشاور" value={counselors.length}/><MiniMetric label="دانش‌آموز" value={students.length}/><MiniMetric label="دانش‌آموز فعال" value={students.filter(item=>item.status==='active').length}/></section>
+      <section id="admin-counselors" className="mt-4 scroll-mt-24 card overflow-hidden">
         <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">کنترل کیفیت</p><h2 className="panel-heading">مشاورها</h2></div>
         {counselors.length?<div className="divide-y divide-white/[.04]">{counselors.map(item=><AdminCounselorRow key={item._id} counselor={item} onSubmit={sendReview}/>)}</div>:<div className="p-5"><EmptyState text="مشاوری وجود ندارد."/></div>}
       </section>
       <section className="mt-4 card overflow-hidden">
         <div className="border-b border-white/[.055] p-5 md:px-6"><p className="section-kicker">دانش‌آموزان</p><h2 className="panel-heading">همه دانش‌آموزها</h2></div>
-        {students.length?<div className="grid gap-2 p-5 sm:grid-cols-2 xl:grid-cols-3">{students.map(student=><div key={student.userId} className="rounded-[14px] border border-white/[.055] bg-white/[.018] p-4"><div className="flex justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className="pill text-[9px]">{studentStatusLabel(student.status)}</span></div><p className="mt-2 text-[11px] muted">{student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p></div>)}</div>:<div className="p-5"><EmptyState text="دانش‌آموزی وجود ندارد."/></div>}
+        {students.length?<div className="grid gap-2 p-5 sm:grid-cols-2 xl:grid-cols-3">{students.map(student=><div key={student.userId} className="rounded-[14px] border border-emerald-400/[.13] bg-white/[.018] p-4 shadow-[inset_3px_0_0_rgba(52,211,153,.20)]"><div className="flex justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className="pill text-[9px]">{studentStatusLabel(student.status)}</span></div><p className="mt-2 text-[11px] muted">{student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p></div>)}</div>:<div className="p-5"><EmptyState text="دانش‌آموزی وجود ندارد."/></div>}
       </section>
     </div>
   </CounselingShell>;
