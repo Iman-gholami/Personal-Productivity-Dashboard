@@ -535,3 +535,49 @@ html[data-theme="light"] .counseling-quicknav button:hover{
   background:rgba(16,185,129,.06);
   color:#065f46;
 }
+
+
+/* Counseling disclosure cards */
+.counseling-disclosure{
+  margin-top:1rem;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:20px;
+  background:linear-gradient(145deg,rgba(17,20,29,.86),rgba(10,12,18,.82));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 55px rgba(0,0,0,.18);
+}
+.counseling-disclosure>summary{
+  display:flex;
+  cursor:pointer;
+  list-style:none;
+  align-items:center;
+  gap:1rem;
+  padding:1rem 1.1rem;
+  user-select:none;
+}
+.counseling-disclosure>summary::-webkit-details-marker{display:none}
+.counseling-disclosure-body{
+  border-top:1px solid rgba(255,255,255,.055);
+  padding:1rem;
+}
+.disclosure-chevron{transition:transform .2s ease}
+.counseling-disclosure[open] .disclosure-chevron{transform:rotate(180deg)}
+.counseling-disclosure-violet{border-color:rgba(139,108,255,.18)}
+.counseling-disclosure-emerald{border-color:rgba(52,211,153,.18)}
+.counseling-disclosure-cyan{border-color:rgba(53,214,199,.18)}
+.counseling-disclosure-amber{border-color:rgba(251,191,36,.16)}
+.counseling-disclosure-violet>summary{background:linear-gradient(90deg,rgba(139,108,255,.07),transparent)}
+.counseling-disclosure-emerald>summary{background:linear-gradient(90deg,rgba(52,211,153,.07),transparent)}
+.counseling-disclosure-cyan>summary{background:linear-gradient(90deg,rgba(53,214,199,.07),transparent)}
+.counseling-disclosure-amber>summary{background:linear-gradient(90deg,rgba(251,191,36,.06),transparent)}
+
+html[data-theme="light"] .counseling-disclosure{
+  border-color:rgba(20,83,45,.10);
+  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(247,252,249,.92));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 16px 40px rgba(30,80,55,.07);
+}
+html[data-theme="light"] .counseling-disclosure-body{border-color:rgba(20,83,45,.08)}
+html[data-theme="light"] .counseling-disclosure-violet{border-color:rgba(16,185,129,.18)}
+html[data-theme="light"] .counseling-disclosure-emerald{border-color:rgba(5,150,105,.20)}
+html[data-theme="light"] .counseling-disclosure-cyan{border-color:rgba(13,148,136,.18)}
+html[data-theme="light"] .counseling-disclosure-amber{border-color:rgba(217,119,6,.18)}
