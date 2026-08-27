@@ -354,6 +354,7 @@ mongoose.connect(process.env.MONGODB_URI||'mongodb://127.0.0.1:27017/lifeos')
     await Task.updateMany(
       {status:'done',$or:[{completedAt:null},{completedAt:{$exists:false}}]},
       [{$set:{completedAt:'$updatedAt'}}],
+      {updatePipeline:true},
     );
     app.listen(process.env.PORT||4000,()=>console.log('LifeOS API ready'));
   })
