@@ -428,19 +428,19 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
               <span className="icon-shell text-violet-300">{editingTask?<Edit3 size={16}/>:<Plus size={16}/>}</span>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              <select name="dayIndex" className="input" defaultValue={editingTask?.dayIndex??0}>{dayLabels.map((day,index)=><option value={index} key={day}>{day}</option>)}</select>
-              <select name="subject" className="input" required defaultValue={editingTask?.subject||subjects[0]}>{subjects.map(subject=><option key={subject}>{subject}</option>)}</select>
-              <select name="track" className="input" defaultValue={editingTask?.track||selectedStudent.track}>{meta.tracks.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
-              <select name="grade" className="input" defaultValue={editingTask?.grade||selectedStudent.grade}>{meta.grades.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
-              <input name="book" className="input" placeholder="کتاب، مثلاً زیست‌شناسی ۳" defaultValue={editingTask?.book||''}/>
-              <input name="chapter" required className="input" placeholder="فصل / درس، مثلاً فصل ۱" defaultValue={editingTask?.chapter||''}/>
-              <input name="topic" className="input sm:col-span-2" placeholder="مبحث / گفتار دقیق (اختیاری)" defaultValue={editingTask?.topic||''}/>
-              <select name="activityType" className="input" defaultValue={editingTask?.activityType||'study'}>{meta.activityTypes.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
-              <input name="plannedMinutes" type="number" min="0" className="input" placeholder="زمان پیشنهادی (دقیقه)" defaultValue={editingTask?.plannedMinutes||0}/>
-              <input name="plannedTests" type="number" min="0" className="input" placeholder="تعداد تست" defaultValue={editingTask?.plannedTests||0}/>
-              <input name="plannedPages" type="number" min="0" className="input" placeholder="تعداد صفحه" defaultValue={editingTask?.plannedPages||0}/>
-              <input name="order" type="number" min="0" className="input" placeholder="ترتیب" defaultValue={editingTask?.order||0}/>
-              <textarea name="description" className="input min-h-24 resize-y sm:col-span-2" placeholder="توضیحات اضافه برای دانش‌آموز" defaultValue={editingTask?.description||''}/>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">روز هفته</span><select name="dayIndex" className="input" defaultValue={editingTask?.dayIndex??0}>{dayLabels.map((day,index)=><option value={index} key={day}>{day}</option>)}</select></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">درس</span><select name="subject" className="input" required defaultValue={editingTask?.subject||subjects[0]}>{subjects.map(subject=><option key={subject}>{subject}</option>)}</select></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">رشته</span><select name="track" className="input" defaultValue={editingTask?.track||selectedStudent.track}>{meta.tracks.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پایه</span><select name="grade" className="input" defaultValue={editingTask?.grade||selectedStudent.grade}>{meta.grades.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">کتاب</span><input name="book" className="input" placeholder="مثلاً زیست‌شناسی ۳" defaultValue={editingTask?.book||''}/></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">فصل / درس</span><input name="chapter" required className="input" placeholder="مثلاً فصل ۱" defaultValue={editingTask?.chapter||''}/></label>
+              <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">مبحث / گفتار دقیق</span><input name="topic" className="input" placeholder="اختیاری؛ مثلاً گفتار ۲" defaultValue={editingTask?.topic||''}/></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">نوع فعالیت</span><select name="activityType" className="input" defaultValue={editingTask?.activityType||'study'}>{meta.activityTypes.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">زمان پیشنهادی (دقیقه)</span><input name="plannedMinutes" type="number" min="0" className="input" placeholder="مثلاً ۹۰" defaultValue={editingTask?.plannedMinutes||0}/></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">تعداد تست هدف</span><input name="plannedTests" type="number" min="0" className="input" placeholder="مثلاً ۴۰" defaultValue={editingTask?.plannedTests||0}/></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">تعداد صفحه هدف</span><input name="plannedPages" type="number" min="0" className="input" placeholder="در صورت نیاز" defaultValue={editingTask?.plannedPages||0}/></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">ترتیب نمایش در روز</span><input name="order" type="number" min="0" className="input" placeholder="۰، ۱، ۲..." defaultValue={editingTask?.order||0}/></label>
+              <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">توضیحات برای دانش‌آموز</span><textarea name="description" className="input min-h-24 resize-y" placeholder="مثلاً تست‌های ۱ تا ۴۰ زده و غلط‌ها بررسی شود." defaultValue={editingTask?.description||''}/></label>
             </div>
             {!editingTask&&<label className="mt-3 flex items-center gap-2 rounded-xl border border-white/[.05] bg-white/[.02] p-3 text-xs muted"><input type="checkbox" name="recurring"/>این تسک در همین روز هفته به‌صورت تکرارشونده ایجاد شود</label>}
             <div className="mt-3 flex gap-2">
