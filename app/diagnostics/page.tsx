@@ -6,8 +6,11 @@ export default function DiagnosticsPage(){
   const [api,setApi]=useState<'checking'|'ok'|'error'>('checking');
   const [apiMessage,setApiMessage]=useState('');
   const [storage,setStorage]=useState<'checking'|'ok'|'error'>('checking');
+  const [origin,setOrigin]=useState('checking...');
 
   useEffect(()=>{
+    setOrigin(window.location.origin);
+
     try{
       const key='lifeos_diag';
       localStorage.setItem(key,'ok');
@@ -44,7 +47,7 @@ export default function DiagnosticsPage(){
       </section>
       <section className="card p-5">
         <h2 className="font-medium">4. Current origin</h2>
-        <p className="mt-2 break-all text-xs muted">{typeof window==='undefined'?'server':window.location.origin}</p>
+        <p className="mt-2 break-all text-xs muted">{origin}</p>
       </section>
     </div>
   </main>
