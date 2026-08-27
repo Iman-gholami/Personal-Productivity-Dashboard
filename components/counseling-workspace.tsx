@@ -10,6 +10,7 @@ import {
   BookOpen,
   CalendarRange,
   CheckCircle2,
+  ChevronDown,
   ClipboardCheck,
   Copy,
   Edit3,
@@ -93,6 +94,28 @@ export function CounselingWorkspace({token,username,onLogout}:{token:string;user
       </div>
     </section>
   </CounselingShell>;
+}
+
+function DisclosureBox({
+  id,title,subtitle,children,defaultOpen=false,accent='violet',
+}:{
+  id:string;
+  title:string;
+  subtitle:string;
+  children:React.ReactNode;
+  defaultOpen?:boolean;
+  accent?:'violet'|'emerald'|'cyan'|'amber';
+}){
+  return <details id={id} open={defaultOpen} className={`counseling-disclosure counseling-disclosure-${accent} scroll-mt-24`}>
+    <summary>
+      <div className="min-w-0 flex-1 text-right">
+        <h2 className="text-[15px] font-semibold">{title}</h2>
+        <p className="mt-1 text-[11px] leading-6 muted">{subtitle}</p>
+      </div>
+      <ChevronDown size={18} className="disclosure-chevron shrink-0 muted"/>
+    </summary>
+    <div className="counseling-disclosure-body">{children}</div>
+  </details>;
 }
 
 function scrollToPanel(id:string){
