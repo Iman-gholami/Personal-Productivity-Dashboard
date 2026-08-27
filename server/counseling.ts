@@ -294,6 +294,40 @@ export function registerCounselingRoutes(app:Express){
     }
   });
 
+  app.post('/api/counseling/students/:studentId/activation-code',auth,async(req:AuthRequest,res,next)=>{
+    try{
+      const role=await authorize(req,res,['counselor','admin']);
+      if(!role) return;
+      const studentId=String(req.params.studentId);
+      const profile=await StudentProfile.findOne({userId:studentId});
+      if(!profile||profile.status==='inactive') return res.status(404).json({error:'Student not found'});
+      if(profile.status==='active') return res.status(400).json({error:'Student account is already active'});
+
+      const assignment=await CounselorAssignment.findOne({studentId,status:'active'});
+      if(!assignment) return res.status(404).json({error:'Active student assignment not found'});
+      if(role==='counselor'&&String(assignment.counselorId)!==req.userId){
+        return res.status(403).json({error:'Student is not assigned to this counselor'});
+      }
+
+      const activationCode=crypto.randomBytes(24).toString('hex');
+      profile.activationTokenHash=hashToken(activationCode);
+      profile.activationExpiresAt=new Date(Date.now()+7*24*60*60*1000);
+      await profile.save();
+      await logAudit(req.userId!,'student.activation.regenerate','StudentProfile',profile._id,null,{
+        studentId,
+        activationExpiresAt:profile.activationExpiresAt,
+      });
+
+      const user=await User.findById(studentId).select('username');
+      res.json({
+        studentId,
+        username:user?.username||'',
+        activationCode,
+        activationExpiresAt:profile.activationExpiresAt,
+      });
+    }catch(error){next(error)}
+  });
+
   app.delete('/api/counseling/students/:studentId',auth,async(req:AuthRequest,res,next)=>{
     try{
       const role=await authorize(req,res,['counselor','admin']);
