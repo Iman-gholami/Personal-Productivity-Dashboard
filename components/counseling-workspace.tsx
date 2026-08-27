@@ -173,6 +173,26 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
     finally{setBusy(false)}
   }
 
+  async function removeStudent(student:CounselingStudentProfile){
+    const ok=confirm(`دانش‌آموز «${student.displayName}» با نام کاربری ${student.username} از لیست فعال حذف شود؟ سوابق برنامه و گزارش‌ها نگه داشته می‌شوند.`);
+    if(!ok)return;
+    setBusy(true);setError(null);
+    try{
+      await counselingApi.deleteStudent(token,student.userId);
+      if(selectedId===student.userId){
+        setSelectedId('');
+        setPlans([]);
+        setSelectedPlanId('');
+        setTasks([]);
+        setReport(null);
+        setFeedback([]);
+      }
+      setActivation(current=>current?.username===student.username?null:current);
+      await loadStudents();
+    }catch(err){setError(err instanceof Error?err.message:'حذف دانش‌آموز ناموفق بود')}
+    finally{setBusy(false)}
+  }
+
   async function createPlan(copyFrom?:string){
     if(!selectedId)return;
     setBusy(true);setError(null);
@@ -290,16 +310,18 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             <span className="icon-shell text-cyan-300"><UserPlus size={17}/></span>
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
-            <input name="displayName" className="input" required placeholder="نام و نام خانوادگی"/>
-            <input name="username" className="input" required placeholder="نام کاربری"/>
+            <label className="space-y-2"><span className="text-[10px] font-semibold text-[#8b8f9c]">نام و نام خانوادگی</span><input name="displayName" className="input" required placeholder="مثلاً علی احمدی"/></label>
+            <label className="space-y-2"><span className="text-[10px] font-semibold text-[#8b8f9c]">نام کاربری برای ورود</span><input name="username" className="input" required placeholder="مثلاً ali.ahmadi" autoCapitalize="none" autoCorrect="off"/></label>
             <select name="track" className="input" defaultValue="experimental">{meta.tracks.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
             <select name="grade" className="input" defaultValue="12">{meta.grades.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
           </div>
           <button disabled={busy} className="btn-primary mt-3 w-full">ساخت دانش‌آموز</button>
           {activation&&<div className="mt-4 rounded-[15px] border border-emerald-400/15 bg-emerald-400/[.06] p-4 text-xs leading-6">
-            <p className="font-medium text-emerald-200">کد فعال‌سازی {activation.username}</p>
-            <code className="mt-2 block break-all rounded-lg bg-black/25 p-2 text-left text-[11px] text-cyan-200">{activation.code}</code>
-            <p className="mt-2 muted">این کد را به دانش‌آموز بده؛ فقط برای فعال‌سازی اولیه حساب استفاده می‌شود.</p>
+            <p className="font-medium text-emerald-200">اطلاعات فعال‌سازی دانش‌آموز</p>
+            <p className="mt-2">نام کاربری برای ورود: <strong className="text-white">{activation.username}</strong></p>
+            <p className="mt-2 text-[10px] muted">کد فعال‌سازی:</p>
+            <code className="mt-1 block break-all rounded-lg bg-black/25 p-2 text-left text-[11px] text-cyan-200">{activation.code}</code>
+            <p className="mt-2 muted">در صفحه ورود، تب Student را بزند و دقیقاً همین نام کاربری + همین کد را وارد کند.</p>
           </div>}
         </form>
 
@@ -308,10 +330,13 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             <div><p className="section-kicker">Roster</p><h2 className="panel-heading">دانش‌آموزان من</h2><p className="panel-subtitle">{students.length} دانش‌آموز فعال یا در انتظار فعال‌سازی</p></div>
             <span className="icon-shell text-violet-300"><Users size={17}/></span>
           </div>
-          {students.length?<div className="grid gap-2 sm:grid-cols-2">{students.map(student=><button key={student.userId} onClick={()=>setSelectedId(student.userId)} className={`rounded-[15px] border p-4 text-right transition ${selectedId===student.userId?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] bg-white/[.02] hover:bg-white/[.04]'}`}>
-            <div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className={`pill text-[9px] ${student.status==='active'?'text-emerald-300':'text-amber-300'}`}>{student.status}</span></div>
-            <p className="mt-2 text-[11px] muted">{student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p>
-          </button>)}</div>:<EmptyState text="هنوز دانش‌آموزی ایجاد نشده است."/>}
+          {students.length?<div className="grid gap-2 sm:grid-cols-2">{students.map(student=><div key={student.userId} className={`relative rounded-[15px] border p-4 transition ${selectedId===student.userId?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] bg-white/[.02] hover:bg-white/[.04]'}`}>
+            <button type="button" onClick={()=>setSelectedId(student.userId)} className="w-full pr-10 text-right">
+              <div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className={`pill text-[9px] ${student.status==='active'?'text-emerald-300':'text-amber-300'}`}>{student.status}</span></div>
+              <p className="mt-2 text-[11px] muted"><span className="text-[#b0b3bd]">Username:</span> {student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p>
+            </button>
+            <button type="button" onClick={()=>void removeStudent(student)} disabled={busy} className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 transition hover:bg-rose-500/[.08] hover:text-rose-200" title="حذف دانش‌آموز"><Trash2 size={14}/></button>
+          </div>)}</div>:<EmptyState text="هنوز دانش‌آموزی ایجاد نشده است."/>}
         </div>
       </section>
 
