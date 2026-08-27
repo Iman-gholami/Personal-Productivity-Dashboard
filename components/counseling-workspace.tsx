@@ -187,6 +187,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   const [activation,setActivation]=useState<{username:string;code:string}|null>(null);
   const [showStudentForm,setShowStudentForm]=useState(false);
   const [editingTask,setEditingTask]=useState<StudyTask|null>(null);
+  const [taskActivity,setTaskActivity]=useState<StudyActivityType>('study');
   const [reportPeriod,setReportPeriod]=useState<CounselingReportPeriod>('week');
   const [feedbackTarget,setFeedbackTarget]=useState<'task'|'day'|'week'>('week');
   const [adminReviews,setAdminReviews]=useState<any[]>([]);
@@ -308,10 +309,10 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       book:String(data.get('book')||'').trim(),
       chapter:String(data.get('chapter')||'').trim(),
       topic:String(data.get('topic')||'').trim(),
-      activityType:String(data.get('activityType')||'study') as StudyActivityType,
+      activityType:taskActivity,
       plannedMinutes:Number(data.get('plannedMinutes')||0),
-      plannedTests:Number(data.get('plannedTests')||0),
-      plannedPages:Number(data.get('plannedPages')||0),
+      plannedTests:activityUsesTests?Number(data.get('plannedTests')||0):0,
+      plannedPages:activityUsesPages?Number(data.get('plannedPages')||0):0,
       description:String(data.get('description')||'').trim(),
       order:Number(data.get('order')||0),
     };
@@ -342,6 +343,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
         }
       }
       setEditingTask(null);
+      setTaskActivity('study');
       form.reset();
       await loadStudentWorkspace(selectedId);
     }catch(err){setError(err instanceof Error?err.message:'ذخیره تسک ناموفق بود')}
@@ -389,6 +391,8 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   }
 
   const subjects=selectedStudent?meta.subjects[selectedStudent.track]:meta.subjects.experimental;
+  const activityUsesTests=['educational-test','timed-test','exam'].includes(taskActivity);
+  const activityUsesPages=['study','review','summary','remediation'].includes(taskActivity);
 
   return <CounselingShell title="پنل مشاور" subtitle="دانش‌آموز را انتخاب کن، برنامه هفته را بساز و بعد گزارش عملکردش را بررسی کن." badge={'مشاور · '+me.username}>
     <div dir="rtl">
@@ -477,17 +481,17 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
               <label className="space-y-1.5"><span className="text-[11px] font-medium muted">کتاب</span><input name="book" className="input" placeholder="مثلاً زیست‌شناسی ۳" defaultValue={editingTask?.book||''}/></label>
               <label className="space-y-1.5"><span className="text-[11px] font-medium muted">فصل / درس</span><input name="chapter" required className="input" placeholder="مثلاً فصل ۱" defaultValue={editingTask?.chapter||''}/></label>
               <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">مبحث / گفتار دقیق</span><input name="topic" className="input" placeholder="اختیاری؛ مثلاً گفتار ۲" defaultValue={editingTask?.topic||''}/></label>
-              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">نوع فعالیت</span><select name="activityType" className="input" defaultValue={editingTask?.activityType||'study'}>{meta.activityTypes.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">نوع فعالیت</span><select name="activityType" className="input" value={taskActivity} onChange={e=>setTaskActivity(e.target.value as StudyActivityType)}>{meta.activityTypes.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
               <label className="space-y-1.5"><span className="text-[11px] font-medium muted">زمان پیشنهادی (دقیقه)</span><input name="plannedMinutes" type="number" min="0" className="input" placeholder="مثلاً ۹۰" defaultValue={editingTask?.plannedMinutes||0}/></label>
-              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">تعداد تست هدف</span><input name="plannedTests" type="number" min="0" className="input" placeholder="مثلاً ۴۰" defaultValue={editingTask?.plannedTests||0}/></label>
-              <label className="space-y-1.5"><span className="text-[11px] font-medium muted">تعداد صفحه هدف</span><input name="plannedPages" type="number" min="0" className="input" placeholder="در صورت نیاز" defaultValue={editingTask?.plannedPages||0}/></label>
+              {activityUsesTests&&<label className="space-y-1.5"><span className="text-[11px] font-medium muted">تعداد تست هدف</span><input name="plannedTests" type="number" min="0" className="input" placeholder="مثلاً ۴۰" defaultValue={editingTask?.plannedTests||0}/></label>}
+              {activityUsesPages&&<label className="space-y-1.5"><span className="text-[11px] font-medium muted">تعداد صفحه هدف</span><input name="plannedPages" type="number" min="0" className="input" placeholder="مثلاً ۲۰ صفحه" defaultValue={editingTask?.plannedPages||0}/></label>}
               <label className="space-y-1.5"><span className="text-[11px] font-medium muted">ترتیب نمایش در روز</span><input name="order" type="number" min="0" className="input" placeholder="۰، ۱، ۲..." defaultValue={editingTask?.order||0}/></label>
               <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">توضیحات برای دانش‌آموز</span><textarea name="description" className="input min-h-24 resize-y" placeholder="مثلاً تست‌های ۱ تا ۴۰ زده و غلط‌ها بررسی شود." defaultValue={editingTask?.description||''}/></label>
             </div>
             {!editingTask&&<label className="mt-3 flex items-center gap-2 rounded-xl border border-white/[.05] bg-white/[.02] p-3 text-xs muted"><input type="checkbox" name="recurring"/>این تسک در همین روز هفته به‌صورت تکرارشونده ایجاد شود</label>}
             <div className="mt-3 flex gap-2">
               <button disabled={busy} className="btn-primary flex-1">{editingTask?'ذخیره تغییرات':'افزودن به برنامه'}</button>
-              {editingTask&&<button type="button" onClick={()=>setEditingTask(null)} className="btn-secondary">انصراف</button>}
+              {editingTask&&<button type="button" onClick={()=>{setEditingTask(null);setTaskActivity('study')}} className="btn-secondary">انصراف</button>}
             </div>
           </form>
 
@@ -504,7 +508,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
                     <p className="mt-2 text-[11px] leading-5 muted">{task.book||'بدون نام کتاب'}{task.topic?' · '+task.topic:''}</p>
                     <p className="mt-2 text-[11px] text-[#9a9daa]">{task.plannedMinutes?task.plannedMinutes+' دقیقه ':''}{task.plannedTests?' · '+task.plannedTests+' تست':''}{task.plannedPages?' · '+task.plannedPages+' صفحه':''}</p>
                     {task.description&&<p className="mt-2 text-xs leading-6 text-[#b8bac4]">{task.description}</p>}</div>
-                    <div className="flex gap-1"><button onClick={()=>setEditingTask(task)} className="grid h-8 w-8 place-items-center rounded-lg border border-white/[.07] text-[#898d99] hover:text-white" title="ویرایش"><Edit3 size={14}/></button><button onClick={()=>void removeTask(task)} className="grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 hover:bg-rose-500/[.08]" title="حذف"><Trash2 size={14}/></button></div>
+                    <div className="flex gap-1"><button onClick={()=>{setEditingTask(task);setTaskActivity(task.activityType)}} className="grid h-8 w-8 place-items-center rounded-lg border border-white/[.07] text-[#898d99] hover:text-white" title="ویرایش"><Edit3 size={14}/></button><button onClick={()=>void removeTask(task)} className="grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 hover:bg-rose-500/[.08]" title="حذف"><Trash2 size={14}/></button></div>
                   </div>
                 </div>)}</div>
               </div>;
