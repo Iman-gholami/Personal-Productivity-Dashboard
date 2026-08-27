@@ -355,7 +355,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
       setEditingTask(null);
       setTaskActivity('study');
       form.reset();
-      await loadStudentWorkspace(selectedId);
+      await Promise.all([loadStudentWorkspace(selectedId),loadStudents()]);
     }catch(err){setError(err instanceof Error?err.message:'ذخیره تسک ناموفق بود')}
     finally{setBusy(false)}
   }
@@ -365,7 +365,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
     setBusy(true);
     try{
       await counselingApi.updatePlanStatus(token,selectedPlan._id,'published');
-      await loadStudentWorkspace(selectedId);
+      await Promise.all([loadStudentWorkspace(selectedId),loadStudents()]);
     }catch(err){setError(err instanceof Error?err.message:'انتشار برنامه ناموفق بود')}
     finally{setBusy(false)}
   }
@@ -374,7 +374,7 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
     if(!confirm('این تسک از برنامه آرشیو شود؟'))return;
     try{
       await counselingApi.deleteTask(token,task._id);
-      await loadStudentWorkspace(selectedId);
+      await Promise.all([loadStudentWorkspace(selectedId),loadStudents()]);
     }catch(err){setError(err instanceof Error?err.message:'حذف تسک ناموفق بود')}
   }
 
@@ -424,9 +424,6 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
   const activityUsesTests=['educational-test','timed-test','exam'].includes(taskActivity);
   const activityUsesPages=['study','review','summary','remediation'].includes(taskActivity);
 
-  const counselorTaskDone=tasks.filter(task=>task.submission?.status==='done').length;
-  const counselorTaskProgress=tasks.length?Math.round((counselorTaskDone/tasks.length)*100):0;
-
   return <CounselingShell title="پنل مشاور" subtitle="دانش‌آموز را انتخاب کن، برنامه هفته را بساز و بعد گزارش عملکردش را بررسی کن." badge={'مشاور · '+me.username}>
     <div dir="rtl" className="counselor-dashboard">
       {error&&<InlineError message={error}/>}
@@ -441,10 +438,10 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
           </div>
         </div>
         <div className="counselor-context-stats">
-          <div><strong>{tasks.length}</strong><span>تسک هفته</span></div>
-          <div><strong>{counselorTaskDone}</strong><span>انجام‌شده</span></div>
-          <div><strong>{report?.metrics.actualMinutes?minutesLabel(report.metrics.actualMinutes):'۰ دقیقه'}</strong><span>مطالعه</span></div>
-          <div><strong>{counselorTaskProgress}%</strong><span>پیشرفت</span></div>
+          <div><strong>{selectedOverview?.plannedTasks??0}</strong><span>تسک هفته</span></div>
+          <div><strong>{selectedOverview?.completedTasks??0}</strong><span>انجام‌شده</span></div>
+          <div><strong>{minutesLabel(selectedOverview?.actualMinutes??0)}</strong><span>مطالعه</span></div>
+          <div><strong>{selectedOverview?.completionRate??0}%</strong><span>پیشرفت</span></div>
         </div>
       </section>:<section className="counselor-context-empty">
         <Users size={20}/>
@@ -458,9 +455,12 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
             <h2>دانش‌آموزها</h2>
             <p>در یک نگاه وضعیت هفته را ببین؛ بعد فقط وارد جزئیات کسی شو که لازم است.</p>
           </div>
-          <button type="button" onClick={()=>setShowStudentForm(value=>!value)} className="btn-primary">
-            <UserPlus size={15}/>{showStudentForm?'بستن فرم':'دانش‌آموز جدید'}
-          </button>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={()=>void loadStudents()} className="btn-secondary px-3" title="به‌روزرسانی وضعیت"><RefreshCw size={14}/></button>
+            <button type="button" onClick={()=>setShowStudentForm(value=>!value)} className="btn-primary">
+              <UserPlus size={15}/>{showStudentForm?'بستن فرم':'دانش‌آموز جدید'}
+            </button>
+          </div>
         </header>
 
         <div className="counselor-roster-summary">
