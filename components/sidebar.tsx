@@ -1,6 +1,7 @@
 'use client';
 import {Activity,BookOpen,Briefcase,CalendarDays,Command,GraduationCap,LayoutDashboard,Menu,Settings,Sparkles,X} from 'lucide-react';
 import {useState} from 'react';
+import {ThemeToggle} from './theme-toggle';
 
 export type WorkspaceView='overview'|'work'|'learning'|'review'|'counseling'|'settings';
 
@@ -34,11 +35,11 @@ export function Sidebar({
   return <>
     <button
       onClick={()=>setOpen(true)}
-      className="fixed left-5 top-5 z-40 grid h-10 w-10 place-items-center rounded-[14px] border border-white/10 bg-[#0d1017]/90 shadow-2xl backdrop-blur-xl md:hidden"
+      className="theme-mobile-nav fixed left-5 top-5 z-40 grid h-10 w-10 place-items-center rounded-[14px] border border-white/10 bg-[#0d1017]/90 shadow-2xl backdrop-blur-xl md:hidden"
       aria-label="Open navigation"
     ><Menu size={18}/></button>
 
-    <aside className={`${open?'translate-x-0':'-translate-x-full'} fixed inset-y-0 left-0 z-50 flex w-[252px] flex-col border-r border-white/[.065] bg-[#080a0f]/88 p-4 backdrop-blur-2xl transition duration-300 md:translate-x-0`}>
+    <aside className={`theme-sidebar ${open?'translate-x-0':'-translate-x-full'} fixed inset-y-0 left-0 z-50 flex w-[252px] flex-col border-r border-white/[.065] bg-[#080a0f]/88 p-4 backdrop-blur-2xl transition duration-300 md:translate-x-0`}>
       <div className="pointer-events-none absolute inset-x-0 top-0 h-40 bg-gradient-to-b from-violet-500/[.07] to-transparent"/>
       <div className="pointer-events-none absolute -left-24 top-28 h-40 w-40 rounded-full bg-violet-600/[.08] blur-3xl"/>
 
@@ -84,6 +85,7 @@ export function Sidebar({
 
       <div className="relative mt-auto space-y-1.5 pt-6">
         <div className="cyber-line mb-3 opacity-40"/>
+        <ThemeToggle/>
         <button
           onClick={()=>navigate('settings')}
           className={`group flex w-full items-center gap-3 rounded-[14px] border px-3 py-2.5 text-sm transition duration-200 ${activeView==='settings'?'border-white/[.075] bg-white/[.055] text-white':'border-transparent text-[#858997] hover:border-white/[.05] hover:bg-white/[.03] hover:text-white'}`}
