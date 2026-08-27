@@ -1,7 +1,8 @@
 import './globals.css';
-import {Inter} from 'next/font/google';
+import {Inter,Vazirmatn} from 'next/font/google';
 
 const inter=Inter({subsets:['latin'],variable:'--font-inter'});
+const vazirmatn=Vazirmatn({subsets:['arabic'],variable:'--font-vazirmatn'});
 export const metadata={title:'LifeOS — Command your day',description:'Your personal productivity operating system'};
 
 const themeScript=`
@@ -16,8 +17,8 @@ const themeScript=`
 `;
 
 export default function Layout({children}:{children:React.ReactNode}){
-  return <html lang="en" data-theme="dark" suppressHydrationWarning>
+  return <html lang="fa" data-theme="dark" suppressHydrationWarning>
     <head><script dangerouslySetInnerHTML={{__html:themeScript}}/></head>
-    <body className={inter.variable+' font-sans'}>{children}</body>
+    <body className={inter.variable+' '+vazirmatn.variable}>{children}</body>
   </html>;
 }
