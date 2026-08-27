@@ -629,21 +629,24 @@ function StudentTaskCard({token,task,meta,onSaved}:{token:string;task:StudyTask;
     <div className="mt-3 flex flex-wrap gap-2 text-[10px] text-[#9699a6]"><span className="pill">{task.plannedMinutes} دقیقه</span>{task.plannedTests>0&&<span className="pill">{task.plannedTests} تست</span>}{task.plannedPages>0&&<span className="pill">{task.plannedPages} صفحه</span>}</div>
     {task.description&&<p className="mt-3 rounded-xl border border-white/[.04] bg-black/15 p-3 text-xs leading-6 text-[#b8bac4]">{task.description}</p>}
 
-    <div className="mt-4 grid gap-2 sm:grid-cols-2">
-      <select value={status} onChange={e=>setStatus(e.target.value as StudySubmissionStatus)} className="input sm:col-span-2">{Object.entries(statusLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select>
-      <input name="actualMinutes" type="number" min="0" className="input" placeholder="زمان واقعی (دقیقه)" defaultValue={existing?.actualMinutes||0}/>
-      {task.plannedPages>0&&<input name="pagesRead" type="number" min="0" className="input" placeholder="صفحات خوانده‌شده" defaultValue={existing?.pagesRead||0}/>}
-      {task.plannedTests>0&&<>
-        <input name="testsAttempted" type="number" min="0" className="input" placeholder="تعداد تست انجام‌شده" defaultValue={existing?.testsAttempted||0}/>
-        <input name="correctAnswers" type="number" min="0" className="input" placeholder="صحیح" defaultValue={existing?.correctAnswers||0}/>
-        <input name="wrongAnswers" type="number" min="0" className="input" placeholder="غلط" defaultValue={existing?.wrongAnswers||0}/>
-        <input name="unanswered" type="number" min="0" className="input" placeholder="نزده" defaultValue={existing?.unanswered||0}/>
-      </>}
-      {task.plannedPages<=0&&<input type="hidden" name="pagesRead" value="0"/>}
-      {task.plannedTests<=0&&<><input type="hidden" name="testsAttempted" value="0"/><input type="hidden" name="correctAnswers" value="0"/><input type="hidden" name="wrongAnswers" value="0"/><input type="hidden" name="unanswered" value="0"/></>}
-      <textarea name="studentNote" className="input min-h-20 resize-y sm:col-span-2" placeholder="توضیح گزارش کار، مشکل یا نکته..." defaultValue={existing?.studentNote||''}/>
-      {status==='skipped'&&<textarea name="skippedReason" required className="input min-h-20 resize-y border-amber-400/20 sm:col-span-2" placeholder="دلیل انجام نشدن این تسک (اجباری)" defaultValue={existing?.skippedReason||''}/>}
-      {status!=='skipped'&&<input type="hidden" name="skippedReason" value=""/>}
+    <div className="mt-4 rounded-[14px] border border-white/[.05] bg-black/10 p-3">
+      <p className="mb-3 text-xs font-semibold">گزارش من برای این تسک</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">وضعیت انجام</span><select value={status} onChange={e=>setStatus(e.target.value as StudySubmissionStatus)} className="input">{Object.entries(statusLabels).map(([value,label])=><option key={value} value={value}>{label}</option>)}</select></label>
+        <label className="space-y-1.5"><span className="text-[11px] font-medium muted">زمان واقعی مطالعه (دقیقه)</span><input name="actualMinutes" type="number" min="0" className="input" placeholder="مثلاً ۷۵" defaultValue={existing?.actualMinutes||0}/></label>
+        {task.plannedPages>0&&<label className="space-y-1.5"><span className="text-[11px] font-medium muted">صفحات خوانده‌شده</span><input name="pagesRead" type="number" min="0" className="input" placeholder="تعداد واقعی صفحه" defaultValue={existing?.pagesRead||0}/></label>}
+        {task.plannedTests>0&&<>
+          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">تست انجام‌شده</span><input name="testsAttempted" type="number" min="0" className="input" placeholder="مثلاً ۳۲" defaultValue={existing?.testsAttempted||0}/></label>
+          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پاسخ صحیح</span><input name="correctAnswers" type="number" min="0" className="input" placeholder="تعداد صحیح" defaultValue={existing?.correctAnswers||0}/></label>
+          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">پاسخ غلط</span><input name="wrongAnswers" type="number" min="0" className="input" placeholder="تعداد غلط" defaultValue={existing?.wrongAnswers||0}/></label>
+          <label className="space-y-1.5"><span className="text-[11px] font-medium muted">نزده</span><input name="unanswered" type="number" min="0" className="input" placeholder="تعداد نزده" defaultValue={existing?.unanswered||0}/></label>
+        </>}
+        {task.plannedPages<=0&&<input type="hidden" name="pagesRead" value="0"/>}
+        {task.plannedTests<=0&&<><input type="hidden" name="testsAttempted" value="0"/><input type="hidden" name="correctAnswers" value="0"/><input type="hidden" name="wrongAnswers" value="0"/><input type="hidden" name="unanswered" value="0"/></>}
+        <label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium muted">توضیح برای مشاور</span><textarea name="studentNote" className="input min-h-20 resize-y" placeholder="اگر مشکلی داشتی یا بخشی کامل نشد، اینجا بنویس." defaultValue={existing?.studentNote||''}/></label>
+        {status==='skipped'&&<label className="space-y-1.5 sm:col-span-2"><span className="text-[11px] font-medium text-amber-300">چرا این تسک انجام نشد؟ (اجباری)</span><textarea name="skippedReason" required className="input min-h-20 resize-y border-amber-400/20" placeholder="دلیل انجام نشدن را بنویس." defaultValue={existing?.skippedReason||''}/></label>}
+        {status!=='skipped'&&<input type="hidden" name="skippedReason" value=""/>}
+      </div>
     </div>
     {error&&<p className="mt-2 text-xs text-rose-300">{error}</p>}
     <button disabled={saving} className="btn-primary mt-3 w-full">{saving?'در حال ثبت...':'ثبت گزارش این تسک'}</button>
