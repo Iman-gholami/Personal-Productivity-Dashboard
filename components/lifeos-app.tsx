@@ -17,6 +17,8 @@ import {
 import {Sidebar,WorkspaceView} from './sidebar';
 import {Dashboard,nextStatus} from './dashboard';
 import {WorkspaceViews} from './workspace-views';
+import {CounselingWorkspace} from './counseling-workspace';
+import {counselingApi} from '@/lib/counseling-api';
 
 const TOKEN_KEY='lifeos_token';
 const USER_KEY='lifeos_username';
@@ -228,6 +230,8 @@ export function LifeOSApp(){
           onAdvanceTask={advanceTask}
           onLogout={logout}
         />
+      : activeView==='counseling'
+      ? <CounselingWorkspace token={token} username={username||'User'}/>
       : <WorkspaceViews
           view={activeView}
           username={username||'User'}
@@ -253,20 +257,34 @@ export function LifeOSApp(){
 }
 
 function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:string)=>void}){
-  const [mode,setMode]=useState<'login'|'register'>('login');
+  const [mode,setMode]=useState<'login'|'register'|'activate'>('login');
   const [username,setUsername]=useState('');
   const [password,setPassword]=useState('');
   const [error,setError]=useState<string|null>(null);
   const [busy,setBusy]=useState(false);
+  const [notice,setNotice]=useState<string|null>(null);
 
   async function submit(e:FormEvent<HTMLFormElement>){
     e.preventDefault();
     setBusy(true);
     setError(null);
+    setNotice(null);
     try{
       const form=new FormData(e.currentTarget);
       const normalizedUsername=String(form.get('username')||'').trim().toLowerCase();
       const submittedPassword=String(form.get('password')||'');
+      if(mode==='activate'){
+        await counselingApi.activateStudent({
+          username:normalizedUsername,
+          activationCode:String(form.get('activationCode')||'').trim(),
+          password:submittedPassword,
+        });
+        setUsername(normalizedUsername);
+        setPassword('');
+        setMode('login');
+        setNotice('حساب دانش‌آموز فعال شد. حالا وارد شو.');
+        return;
+      }
       const result=mode==='login'
         ? await api.login(normalizedUsername,submittedPassword)
         : await api.register(normalizedUsername,submittedPassword);
@@ -312,18 +330,21 @@ function AuthScreen({onAuthenticated}:{onAuthenticated:(token:string,username:st
         </div>
         <div className="mb-7">
           <div className="mb-3 flex items-center gap-2 text-[10px] font-semibold uppercase tracking-[.18em] text-[#727684]"><ShieldCheck size={13} className="text-cyan-300"/>Secure session</div>
-          <h2 className="text-2xl font-semibold tracking-[-.035em]">{mode==='login'?'Welcome back':'Create your workspace'}</h2>
-          <p className="mt-2 text-sm text-[#7d8190]">{mode==='login'?'Sign in to continue to your command center.':'Create an account to start tracking your work and learning.'}</p>
+          <h2 className="text-2xl font-semibold tracking-[-.035em]">{mode==='login'?'Welcome back':mode==='register'?'Create your workspace':'Activate student account'}</h2>
+          <p className="mt-2 text-sm text-[#7d8190]">{mode==='login'?'Sign in to continue to your command center.':mode==='register'?'Create an account to start tracking your work and learning.':'Use the activation code provided by your counselor and choose your password.'}</p>
         </div>
-        <div className="mb-5 grid grid-cols-2 rounded-[14px] border border-white/[.055] bg-black/20 p-1">
-          <button type="button" onClick={()=>{setMode('login');setError(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='login'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Login</button>
-          <button type="button" onClick={()=>{setMode('register');setError(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='register'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Register</button>
+        <div className="mb-5 grid grid-cols-3 rounded-[14px] border border-white/[.055] bg-black/20 p-1">
+          <button type="button" onClick={()=>{setMode('login');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='login'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Login</button>
+          <button type="button" onClick={()=>{setMode('register');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='register'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Register</button>
+          <button type="button" onClick={()=>{setMode('activate');setError(null);setNotice(null)}} className={`rounded-[10px] px-3 py-2.5 text-xs font-medium transition ${mode==='activate'?'bg-white/[.09] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.06)]':'text-[#737785] hover:text-white'}`}>Student</button>
         </div>
         <form onSubmit={submit} className="space-y-3">
           <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Username</label><input name="username" required minLength={3} maxLength={40} className="input" placeholder="Enter username" autoComplete="username" defaultValue={username}/></div>
-          <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Password</label><input name="password" required minLength={8} maxLength={100} type="password" className="input" placeholder="Enter password" autoComplete={mode==='login'?'current-password':'new-password'} defaultValue={password}/></div>
+          {mode==='activate'&&<div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Activation code</label><input name="activationCode" required className="input" placeholder="Paste activation code"/></div>}
+          <div><label className="mb-2 block text-[10px] font-semibold uppercase tracking-[.15em] text-[#747887]">Password</label><input name="password" required minLength={8} maxLength={100} type="password" className="input" placeholder={mode==='activate'?'Choose a new password':'Enter password'} autoComplete={mode==='login'?'current-password':'new-password'} defaultValue={password}/></div>
+          {notice&&<p className="rounded-[12px] border border-emerald-400/15 bg-emerald-500/[.07] px-3 py-2.5 text-xs text-emerald-200">{notice}</p>}
           {error&&<p className="rounded-[12px] border border-rose-400/15 bg-rose-500/[.07] px-3 py-2.5 text-xs text-rose-200">{error}</p>}
-          <button disabled={busy} className="btn-primary mt-1 w-full">{busy?'Working...':mode==='login'?'Enter LifeOS':'Create account'}</button>
+          <button disabled={busy} className="btn-primary mt-1 w-full">{busy?'Working...':mode==='login'?'Enter LifeOS':mode==='register'?'Create account':'Activate student account'}</button>
         </form>
         <div className="mt-6 flex items-center justify-between border-t border-white/[.055] pt-4 text-[10px] text-[#656977]">
           <span>Next.js proxy</span>
