@@ -154,7 +154,7 @@ app.patch('/api/projects/:id',auth,async(req:AuthRequest,res,next)=>{
     const item=await Project.findOneAndUpdate(
       {_id:req.params.id,userId:req.userId},
       {$set:projectInput.partial().parse(req.body)},
-      {new:true,runValidators:true},
+      {returnDocument:'after',runValidators:true},
     );
     if(!item) return res.status(404).json({error:'Not found'});
     res.json(item);
@@ -202,7 +202,7 @@ app.patch('/api/learning/:id',auth,async(req:AuthRequest,res,next)=>{
     const item=await LearningItem.findOneAndUpdate(
       {_id:req.params.id,userId:req.userId},
       {$set:changes},
-      {new:true,runValidators:true},
+      {returnDocument:'after',runValidators:true},
     );
     if(!item) return res.status(404).json({error:'Not found'});
     res.json(item);
