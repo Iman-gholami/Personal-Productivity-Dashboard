@@ -500,7 +500,7 @@ function PeriodSwitch({value,onChange}:{value:ReportPeriod;onChange:(period:Repo
 }
 
 function signedPercent(value:number){return `${value>0?'+':''}${value}%`}
-function Metric({label,value}:{label:string;value:string|number}){return <div className="card p-5 md:p-6"><p className="text-2xl font-semibold">{value}</p><p className="mt-1 text-xs muted">{label}</p></div>}
+function Metric({label,value}:{label:string;value:string|number}){return <div className="metric-card"><div className="mb-4 h-1 w-8 rounded-full bg-gradient-to-r from-violet-400 to-cyan-400 opacity-70"/><p className="metric-value">{value}</p><p className="mt-1 text-xs text-[#808493]">{label}</p></div>}
 function Empty({text}:{text:string}){return <p className="text-xs muted">{text}</p>}
-function ErrorBanner({message}:{message:string}){return <div className="mb-4 rounded-xl border border-rose-400/20 bg-rose-500/10 px-4 py-3 text-xs text-rose-200">{message}</div>}
-function ReviewField({label,value}:{label:string;value:string}){return <div className="mb-3 last:mb-0"><p className="text-[10px] uppercase tracking-wide text-violet-300">{label}</p><p className="mt-1 text-xs leading-relaxed text-[#c5c4cc]">{value}</p></div>}
+function ErrorBanner({message}:{message:string}){return <div className="mb-4 rounded-[15px] border border-rose-400/15 bg-rose-500/[.07] px-4 py-3 text-xs text-rose-200 shadow-[0_12px_34px_rgba(244,63,94,.05)]">{message}</div>}
+function ReviewField({label,value}:{label:string;value:string}){return <div className="mb-3 rounded-[13px] border border-white/[.045] bg-white/[.018] p-3 last:mb-0"><p className="text-[9px] font-semibold uppercase tracking-[.16em] text-violet-300/80">{label}</p><p className="mt-1.5 text-xs leading-relaxed text-[#bfc2cb]">{value}</p></div>}
