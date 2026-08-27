@@ -451,55 +451,109 @@ function CounselorPanel({token,me,meta}:{token:string;me:CounselingMe;meta:Couns
         <div><strong>یک دانش‌آموز انتخاب کن</strong><span>بعد از انتخاب، برنامه و گزارش همان دانش‌آموز اینجا باز می‌شود.</span></div>
       </section>}
 
-      <DisclosureBox id="counseling-students" title="دانش‌آموزها" subtitle="دانش‌آموز را انتخاب کن یا یک دانش‌آموز جدید بساز." defaultOpen accent="emerald">
-        <section className="grid gap-4 xl:grid-cols-[1fr_1.5fr]">
-        <div className="flex items-center justify-between xl:col-span-2">
-          <div><h2 className="text-base font-semibold">دانش‌آموزها</h2><p className="mt-1 text-xs muted">اول دانش‌آموز موردنظر را انتخاب کن.</p></div>
-          <button type="button" onClick={()=>setShowStudentForm(value=>!value)} className="btn-secondary"><UserPlus size={15}/>{showStudentForm?'بستن فرم':'دانش‌آموز جدید'}</button>
-        </div>
-        {activation&&<div className="xl:col-span-2 rounded-[18px] border border-emerald-400/25 bg-emerald-400/[.07] p-4 shadow-[0_14px_40px_rgba(16,185,129,.08)]">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-sm font-semibold text-emerald-200">کد فعال‌سازی آماده است</p>
-              <p className="mt-1 text-xs muted">نام کاربری دانش‌آموز: <strong className="text-white">{activation.username}</strong></p>
-            </div>
-            <button type="button" onClick={()=>navigator.clipboard?.writeText(activation.code)} className="btn-secondary"><Copy size={14}/>کپی کد</button>
+      <section id="counseling-students" className="counselor-roster-cockpit scroll-mt-24">
+        <header className="counselor-roster-head">
+          <div>
+            <span className="counselor-roster-eyebrow">Student cockpit</span>
+            <h2>دانش‌آموزها</h2>
+            <p>در یک نگاه وضعیت هفته را ببین؛ بعد فقط وارد جزئیات کسی شو که لازم است.</p>
           </div>
-          <code className="mt-3 block break-all rounded-xl border border-emerald-400/10 bg-black/20 p-3 text-left text-[12px] text-cyan-200">{activation.code}</code>
-          <p className="mt-2 text-[11px] muted">دانش‌آموز در صفحه ورود، تب «دانش‌آموز» را انتخاب کند و همین نام کاربری + کد را وارد کند.</p>
-        </div>}
-        {showStudentForm&&<form onSubmit={createStudent} className="card p-5 md:p-6">
-          <div className="mb-5 flex items-start justify-between gap-3">
-            <div><p className="section-kicker">دانش‌آموزان</p><h2 className="panel-heading">ایجاد دانش‌آموز</h2><p className="panel-subtitle">حساب دانش‌آموز با کد فعال‌سازی یک‌بارمصرف ساخته می‌شود.</p></div>
-            <span className="icon-shell text-cyan-300"><UserPlus size={17}/></span>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="space-y-2"><span className="text-[10px] font-semibold text-[#8b8f9c]">نام و نام خانوادگی</span><input name="displayName" className="input" required placeholder="مثلاً علی احمدی"/></label>
-            <label className="space-y-2"><span className="text-[10px] font-semibold text-[#8b8f9c]">نام کاربری برای ورود</span><input name="username" className="input" required placeholder="مثلاً ali.ahmadi" autoCapitalize="none" autoCorrect="off"/></label>
-            <select name="track" className="input" defaultValue="experimental">{meta.tracks.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
-            <select name="grade" className="input" defaultValue="12">{meta.grades.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select>
-          </div>
-          <button disabled={busy} className="btn-primary mt-3 w-full">ساخت دانش‌آموز</button>
+          <button type="button" onClick={()=>setShowStudentForm(value=>!value)} className="btn-primary">
+            <UserPlus size={15}/>{showStudentForm?'بستن فرم':'دانش‌آموز جدید'}
+          </button>
+        </header>
 
+        <div className="counselor-roster-summary">
+          <button type="button" onClick={()=>setStudentFilter('all')} className={studentFilter==='all'?'active':''}>
+            <strong>{studentOverview.length}</strong><span>کل دانش‌آموزها</span>
+          </button>
+          <button type="button" onClick={()=>setStudentFilter('attention')} className={studentFilter==='attention'?'active':''}>
+            <strong>{attentionCount}</strong><span>نیاز به توجه</span>
+          </button>
+          <button type="button" onClick={()=>setStudentFilter('no-report')} className={studentFilter==='no-report'?'active':''}>
+            <strong>{noReportCount}</strong><span>بدون گزارش</span>
+          </button>
+          <button type="button" onClick={()=>setStudentFilter('on-track')} className={studentFilter==='on-track'?'active':''}>
+            <strong>{onTrackCount}</strong><span>روند خوب</span>
+          </button>
+        </div>
+
+        {activation&&<div className="counselor-activation-banner">
+          <div>
+            <span>کد فعال‌سازی آماده است</span>
+            <strong>{activation.username}</strong>
+          </div>
+          <code>{activation.code}</code>
+          <button type="button" onClick={()=>navigator.clipboard?.writeText(activation.code)}><Copy size={14}/>کپی کد</button>
+        </div>}
+
+        {showStudentForm&&<form onSubmit={createStudent} className="counselor-create-student">
+          <div className="counselor-create-student-head">
+            <div><strong>دانش‌آموز جدید</strong><span>حساب با کد فعال‌سازی ساخته می‌شود.</span></div>
+            <UserPlus size={17}/>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <label><span>نام و نام خانوادگی</span><input name="displayName" className="input" required placeholder="مثلاً علی احمدی"/></label>
+            <label><span>نام کاربری ورود</span><input name="username" className="input" required placeholder="مثلاً ali.ahmadi" autoCapitalize="none" autoCorrect="off"/></label>
+            <label><span>رشته</span><select name="track" className="input" defaultValue="experimental">{meta.tracks.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+            <label><span>پایه</span><select name="grade" className="input" defaultValue="12">{meta.grades.map(item=><option key={item.value} value={item.value}>{item.label}</option>)}</select></label>
+          </div>
+          <button disabled={busy} className="btn-primary mt-3">ساخت دانش‌آموز</button>
         </form>}
 
-        <div className={`card p-5 md:p-6 ${showStudentForm?'':'xl:col-span-2'}`}>
-          <div className="mb-5 flex items-start justify-between gap-3">
-            <div><p className="section-kicker">فهرست دانش‌آموزان</p><h2 className="panel-heading">دانش‌آموزان من</h2><p className="panel-subtitle">{students.length} دانش‌آموز فعال یا در انتظار فعال‌سازی</p></div>
-            <span className="icon-shell text-violet-300"><Users size={17}/></span>
+        <div className="counselor-roster-toolbar">
+          <label className="counselor-roster-search">
+            <Search size={15}/>
+            <input value={studentSearch} onChange={e=>setStudentSearch(e.target.value)} placeholder="جست‌وجوی نام یا نام کاربری..."/>
+            {studentSearch&&<button type="button" onClick={()=>setStudentSearch('')}>×</button>}
+          </label>
+          <div className="counselor-filter-chips">
+            <button type="button" onClick={()=>setStudentFilter('all')} className={studentFilter==='all'?'active':''}>همه</button>
+            <button type="button" onClick={()=>setStudentFilter('attention')} className={studentFilter==='attention'?'active':''}><AlertTriangle size={12}/>نیاز به توجه</button>
+            <button type="button" onClick={()=>setStudentFilter('no-report')} className={studentFilter==='no-report'?'active':''}>بدون گزارش</button>
+            <button type="button" onClick={()=>setStudentFilter('on-track')} className={studentFilter==='on-track'?'active':''}>روند خوب</button>
           </div>
-          {students.length?<div className="grid gap-2 sm:grid-cols-2">{students.map(student=><div key={student.userId} className={`relative rounded-[15px] border p-4 transition ${selectedId===student.userId?'border-violet-400/25 bg-violet-500/[.08]':'border-white/[.06] bg-white/[.02] hover:bg-white/[.04]'}`}>
-            <button type="button" onClick={()=>setSelectedId(student.userId)} className="w-full pr-10 text-right">
-              <div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{student.displayName}</p><span className={`pill text-[9px] ${student.status==='active'?'text-emerald-300':'text-amber-300'}`}>{studentStatusLabel(student.status)}</span></div>
-              <p className="mt-2 text-[11px] muted"><span className="text-[#b0b3bd]">نام کاربری:</span> {student.username} · {trackLabel(student.track)} · {gradeLabel(student.grade)}</p>
-              {student.status==='pending'&&<span className="mt-3 inline-flex rounded-lg border border-amber-400/15 bg-amber-400/[.06] px-2.5 py-1 text-[10px] text-amber-200">هنوز فعال نشده</span>}
-            </button>
-            {student.status==='pending'&&<button type="button" onClick={()=>void regenerateActivation(student)} disabled={busy} className="absolute bottom-3 left-3 rounded-lg border border-emerald-400/15 bg-emerald-400/[.05] px-2 py-1 text-[10px] text-emerald-200 hover:bg-emerald-400/[.09]">کد جدید</button>}
-            <button type="button" onClick={()=>void removeStudent(student)} disabled={busy} className="absolute left-3 top-3 grid h-8 w-8 place-items-center rounded-lg border border-rose-400/10 text-rose-300/70 transition hover:bg-rose-500/[.08] hover:text-rose-200" title="حذف دانش‌آموز"><Trash2 size={14}/></button>
-          </div>)}</div>:<EmptyState text="هنوز دانش‌آموزی ایجاد نشده است."/>}
         </div>
-        </section>
-      </DisclosureBox>
+
+        <div className="counselor-roster-table">
+          <div className="counselor-roster-table-head">
+            <span>دانش‌آموز</span><span>وضعیت</span><span>اجرای هفته</span><span>مطالعه</span><span>تست</span><span>دقت</span><span>آخرین گزارش</span><span></span>
+          </div>
+          {filteredStudents.length?filteredStudents.map(item=>{
+            const profile=students.find(student=>student.userId===item.studentId);
+            return <div key={item.studentId} className={`counselor-roster-row ${selectedId===item.studentId?'selected':''}`}>
+              <button type="button" className="counselor-roster-person" onClick={()=>setSelectedId(item.studentId)}>
+                <span className="counselor-roster-avatar">{item.displayName.slice(0,1)}</span>
+                <span className="min-w-0">
+                  <strong>{item.displayName}</strong>
+                  <small>{item.username} · {trackLabel(item.track)} · {gradeLabel(item.grade)}</small>
+                </span>
+              </button>
+
+              <button type="button" onClick={()=>setSelectedId(item.studentId)} className="counselor-roster-health">
+                <span className={`counselor-health-dot counselor-health-${item.health}`}/>
+                <span>{item.status==='pending'?'در انتظار فعال‌سازی':studentHealthLabel(item.health)}</span>
+              </button>
+
+              <button type="button" onClick={()=>setSelectedId(item.studentId)} className="counselor-roster-progress">
+                <div><strong>{item.completionRate}%</strong><small>{item.completedTasks} از {item.plannedTasks} تسک</small></div>
+                <span><i style={{width:Math.min(100,item.completionRate)+'%'}}/></span>
+                <em>امروز {item.today.completedTasks}/{item.today.plannedTasks||0}</em>
+              </button>
+
+              <button type="button" onClick={()=>setSelectedId(item.studentId)} className="counselor-roster-metric"><strong>{minutesLabel(item.actualMinutes)}</strong><small>این هفته</small></button>
+              <button type="button" onClick={()=>setSelectedId(item.studentId)} className="counselor-roster-metric"><strong>{item.attemptedTests}</strong><small>تست</small></button>
+              <button type="button" onClick={()=>setSelectedId(item.studentId)} className="counselor-roster-metric"><strong>{item.accuracy}%</strong><small>دقت</small></button>
+              <button type="button" onClick={()=>setSelectedId(item.studentId)} className="counselor-roster-last"><strong>{lastActivityLabel(item.lastSubmittedAt)}</strong><small>{item.planStatus?planStatusLabel(item.planStatus):'بدون برنامه هفته'}</small></button>
+
+              <div className="counselor-roster-actions">
+                {profile?.status==='pending'&&<button type="button" onClick={()=>void regenerateActivation(profile)} disabled={busy} title="کد فعال‌سازی جدید">کد</button>}
+                {profile&&<button type="button" onClick={()=>void removeStudent(profile)} disabled={busy} className="danger" title="حذف دانش‌آموز"><Trash2 size={13}/></button>}
+              </div>
+            </div>;
+          }):<div className="counselor-roster-empty"><Users size={22}/><strong>دانش‌آموزی با این فیلتر پیدا نشد</strong><span>فیلتر یا عبارت جست‌وجو را تغییر بده.</span></div>}
+        </div>
+      </section>
 
       {selectedStudent&&<>
         <DisclosureBox id="counseling-plan" title={`برنامه هفتگی ${selectedStudent.displayName}`} subtitle="برنامه هفته را بساز، تسک‌ها را اضافه کن و در پایان منتشر کن." defaultOpen accent="violet">
@@ -1115,6 +1169,19 @@ function ErrorPanel({message,onRetry}:{message:string;onRetry:()=>void}){return 
 function InlineError({message}:{message:string}){return <div className="mb-4 rounded-[15px] border border-rose-400/15 bg-rose-500/[.07] px-4 py-3 text-xs text-rose-200">{message}</div>}
 function EmptyState({text}:{text:string}){return <p className="text-xs leading-6 muted">{text}</p>}
 
+function studentHealthLabel(value:CounselorStudentOverview['health']){
+  if(value==='no-plan') return 'برنامه ندارد';
+  if(value==='no-report') return 'گزارش نداده';
+  if(value==='attention') return 'نیاز به پیگیری';
+  if(value==='complete') return 'عالی';
+  return 'روند خوب';
+}
+function lastActivityLabel(value:string|null){
+  if(!value)return 'هنوز گزارشی نیست';
+  const date=String(value).slice(0,10);
+  if(date===todayDateClient())return 'امروز';
+  return date;
+}
 function studentStatusLabel(status:string){return status==='active'?'فعال':status==='pending'?'در انتظار فعال‌سازی':'غیرفعال'}
 function planStatusLabel(status:string){return status==='published'?'منتشر شده':status==='draft'?'پیش‌نویس':'آرشیو شده'}
 function trackLabel(track:StudentTrack){return track==='experimental'?'تجربی':'ریاضی'}
